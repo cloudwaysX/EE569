@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	//Mirror the Image acrross vertical axis
 	unsigned char out[height][width][1];
 	int selectChannel=atoi(argv[5]);
-	double normalizeParameter = 255;
+	unsigned char normalizeParameter = 255;
 
 	for(int r=0;r<height;r++){
 		for(int c=0;c<width;c++){
@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 			//unsigned char temp[3]={H/360.0*255,S*255,G*255};
 			out[r][c][0]=temp[selectChannel];
 			//out[r][c][0]=L*255;
-			cout<<(int)temp[selectChannel]<<endl;
+			//cout<<(int)temp[selectChannel]<<endl;
 
 			
 		}
