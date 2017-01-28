@@ -44,13 +44,13 @@ int main(int argc, char *argv[])
 
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
 	//Mirror the Image acrross vertical axis
-	double out[height][width][1];
+	unsigned char out[height][width][1];
 	int selectChannel=atoi(argv[5]);
-	double normalizeParameter = 255;
+	unsigned char normalizeParameter = 255;
 
 	for(int r=0;r<height;r++){
 		for(int c=0;c<width;c++){
-			out[r][c][0]=(1-Imagedata[r][c][selectChannel]/normalizeParameter);
+			out[r][c][0]=(normalizeParameter-Imagedata[r][c][selectChannel]);
 		}
 	}
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 		cout << "Cannot open file: " << argv[2] << endl;
 		exit(1);
 	}
-	fwrite(out, sizeof(double), height*width, file);
+	fwrite(out, sizeof(unsigned char), height*width, file);
 	fclose(file);
 
 	return 0;
