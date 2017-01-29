@@ -28,3 +28,16 @@
 ./Problem1_b_rgb2hsl ./images/problem1/dolphin.raw ./result/problem1/dolphin_L.raw 480 640 2 ----????
 
 
+ ./Problem1_b_SepiaFilter ./images/problem1/beach.raw ./result/problem1/beach_gray.raw 808 1914 0 --???
+ ./Problem1_b_SepiaFilter ./images/problem1/beach.raw ./result/problem1/beach_Sephia.raw 808 1914 1
+
+
+--Problem1_b_rgb2hsl
+--a: Linear Transfer
+./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis4.raw 366 400 4
+--5 is the best !!!
+./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis5.raw 366 400 5
+./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis6.raw 366 400 6
+
+--Error with dark??? cannot read
+
