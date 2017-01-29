@@ -9,3 +9,5 @@ g++ -o Problem1_b_rgb2hsl Problem1_b_rgb2hsl.cpp
 g++ -o Problem1_b_SepiaFilter Problem1_b_SepiaFilter.cpp
 
 g++ -o Problem2_a_linearTrans Problem2_a_linearTrans.cpp
+
+g++ -o Problem2_a_hisEqual Problem2_a_hisEqual.cpp 

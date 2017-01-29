@@ -39,5 +39,19 @@
 ./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis5.raw 366 400 5
 ./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis6.raw 366 400 6
 
---Error with dark??? cannot read
+./Problem2_a_linearTrans ./images/problem2/tulip_dark.raw ./result/problem2/tulip_dark_highContrastA_kis6.raw 366 400 6
+366 400
+./Problem2_a_linearTrans ./images/problem2/tulip_dark.raw ./result/problem2/tulip_dark_highContrastA_kis5.raw 366 400 5
+366 400
+./Problem2_a_linearTrans ./images/problem2/tulip_dark.raw ./result/problem2/tulip_dark_highContrastA_kis4.raw 366 400 4
+366 400
+366 400
+./Problem2_a_linearTrans ./images/problem2/tulip_dark.raw ./result/problem2/tulip_dark_highContrastA_kis3.raw 366 400 3
+366 400
+
+
+-a: HistEqualUsingCDF
+./Problem2_a_hisEqual ./images/problem2/tulip_bright.raw  ./result/problem2/tulip_bright_highContrastB.raw 366 400 255
+./Problem2_a_hisEqual ./images/problem2/tulip_dark.raw  ./result/problem2/tulip_dark_highContrastB.raw 366 400 255
+
 
