@@ -11,3 +11,5 @@ g++ -o Problem1_b_SepiaFilter Problem1_b_SepiaFilter.cpp
 g++ -o Problem2_a_linearTrans Problem2_a_linearTrans.cpp
 
 g++ -o Problem2_a_hisEqual Problem2_a_hisEqual.cpp 
+
+g++ -o Problem3_a Problem3_a.cpp 

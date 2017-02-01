@@ -17,6 +17,7 @@
 ./Problem1_b_rgb2cmk ./images/problem1/building.raw ./result/problem1/building_M.raw 600 789 1
 ./Problem1_b_rgb2cmk ./images/problem1/building.raw ./result/problem1/building_C.raw 600 789 0
 
+--Problem1_b_rgb2hsl
 --rgb to hsl !!!!!!!! Error with L
 
 ./Problem1_b_rgb2hsl ./images/problem1/cat.raw ./result/problem1/cat_H.raw 398 600 0
@@ -32,7 +33,6 @@
  ./Problem1_b_SepiaFilter ./images/problem1/beach.raw ./result/problem1/beach_Sephia.raw 808 1914 1
 
 
---Problem1_b_rgb2hsl
 --a: Linear Transfer
 ./Problem2_a_linearTrans ./images/problem2/tulip_bright.raw ./result/problem2/tulip_bright_highContrast_kis4.raw 366 400 4
 --5 is the best !!!
@@ -55,3 +55,14 @@
 ./Problem2_a_hisEqual ./images/problem2/tulip_dark.raw  ./result/problem2/tulip_dark_highContrastB.raw 366 400 255
 
 
+--Probelm 3_a ???? Why darker
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise1.raw 512 512 3 1
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise1.raw 512 512 3 2
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma1.raw 512 512 3 1
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma2_size3.raw 512 512 3 2
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma1_size3.raw 512 512 3 1
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma1_size5.raw 512 512 5 1
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma2_size5.raw 512 512 5 2
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma2_size7.raw 512 512 7 2
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma5_size3.raw 512 512 3 5
+./Problem3_a ./images/problem3/pepper_noisy.raw ./result/problem3/pepper_denoise_sigma100_size3.raw 512 512 3 100
