@@ -13,3 +13,5 @@ g++ -o Problem2_a_linearTrans Problem2_a_linearTrans.cpp
 g++ -o Problem2_a_hisEqual Problem2_a_hisEqual.cpp 
 
 g++ -o Problem3_a Problem3_a.cpp 
+
+g++ -o Problem2_c Problem2_c.cpp 

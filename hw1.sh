@@ -49,6 +49,11 @@
 ./Problem2_a_linearTrans ./images/problem2/tulip_dark.raw ./result/problem2/tulip_dark_highContrastA_kis3.raw 366 400 3
 366 400
 
+--Problem2_c 
+./Problem2_c ./images/problem2/forest_2.raw ./result/problem2/forest_2_histtansGauss.raw 413 550
+./Problem2_c ./images/problem2/forest_1.raw ./result/problem2/forest_1_histtansGauss.raw 600 960
+
+
 
 -a: HistEqualUsingCDF
 ./Problem2_a_hisEqual ./images/problem2/tulip_bright.raw  ./result/problem2/tulip_bright_highContrastB.raw 366 400 255
