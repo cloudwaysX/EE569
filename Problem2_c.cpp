@@ -13,6 +13,7 @@
 
 using namespace std;
 
+#define MIN 0.0000001
 
 
 int main(int argc, char *argv[])
@@ -46,6 +47,7 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
+	///////////Declare a pointer and do the image padding in the pointer
 
 	//calcualte the histogram
 	for(int k=0;k<BytesPerPixel;k++){
@@ -57,30 +59,55 @@ int main(int argc, char *argv[])
 				hist.at(Imagedata[r][c][k])+=1;
 			}
 		}
+
+		culhis.at(0)=hist.at(0)/(double)(height*width);
+		for(int i=1;i<256;i++){
+			culhis.at(i)=culhis.at(i-1)+hist.at(i)/(double)(height*width);
+			//cout<<culhis.at(i)<<endl;
+		}
+
+		///////////////////////////////////////////////////////////////////
 		vector<double> transformedHist(256,0);
 		double transformedSum=0;
 		for(int i=0;i<256;i++){
 			double temp=-pow(i-mean,2)/(2*pow(stdv,2));
 			temp=exp(temp);
-			temp=temp/pow(2*M_PI*stdv,0.5);
+			temp=temp/sqrt(2*M_PI*stdv*stdv);
 			transformedHist.at(i)=temp;
-			//cout<<transformedHist.at(i)<<endl;
 			transformedSum+=temp;
 		}
-		culhis.at(0)=transformedHist.at(0)/transformedSum;
+		vector<double> culhis_trans(256,0);
+		culhis_trans.at(0)=transformedHist.at(0)/transformedSum;
 		for(int i=1;i<256;i++){
-			culhis.at(i)=culhis.at(i-1)+transformedHist.at(i)/transformedSum;
-			//cout<<culhis.at(i)<<endl;
+			culhis_trans.at(i)=culhis_trans.at(i-1)+transformedHist.at(i)/transformedSum;
+			//cout<<culhis_trans.at(i)<<endl;
 		}
-		//cout<<transformedSum<<endl;
-		double range=255;
+		////////////////////////////////////////////
+		vector<unsigned char> correspondingTensity(256,0);
+		int begin=0;
+		for(int i=0;i<256;i++){
+			double target_cdf=culhis.at(i);
+			cout<<"target_cdf: "<<target_cdf<<endl;
+			for(int j=begin;j<256;j++){
+				cout<<"culhis_trans: "<<culhis_trans.at(j)<<endl;
+				cout<<i<<endl;
+				if(culhis_trans.at(j)>=target_cdf-MIN){
+					correspondingTensity.at(i)=j;
+					//cout<<"i"<<i<<"j"<<j<<endl;
+					begin=j;
+					break;
+				}
+			}
+		}
+
+		//////////////////////////////////////
 		for(int r=0;r<height;r++){
-			for(int c=0;c<width;c++){
-				Imagedata[r][c][k]=(unsigned char)(culhis.at((int)Imagedata[r][c][k])*range);
-				//cout<<culhis.at((int)Imagedata[r][c][k])<<endl;
+			for(int c=0;c<width;c++){	
+				Imagedata[r][c][k]=(unsigned char)(correspondingTensity.at((int)Imagedata[r][c][k]));
 				//cout<<(int)Imagedata[r][c][k]<<endl;
 			}
 		}
+
 
 	}
 
@@ -95,6 +122,7 @@ int main(int argc, char *argv[])
 	}
 	fwrite(Imagedata, sizeof(unsigned char), width*height*BytesPerPixel, file);
 	fclose(file);
+
 
 	return 0;
 }
