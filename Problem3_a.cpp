@@ -139,6 +139,7 @@ unsigned char MedianFilter(vector<unsigned char> Patch){
 }
 
 unsigned char GaussianFilter(vector<unsigned char> Patch,double sigma){
+	//cout<<sigma<<endl;
 	double sum=0;
 	double weight_sum=0;
 	int filterSize=sqrt(Patch.size());
@@ -146,8 +147,8 @@ unsigned char GaussianFilter(vector<unsigned char> Patch,double sigma){
 	int center=filterSize/2; //both for row and column
 	for (int r=0;r<filterSize;r++){
 		for (int c=0;c<filterSize;c++){
-			int index=r*3+c;
-			weight[index]=exp(-(pow(r-center,2)+pow(c-center,2))/(2*pow(sigma,2)));
+			int index=r*filterSize+c;
+			weight[index]=exp(-(pow(r-center,2)+pow(c-center,2))/(2*pow((double)sigma,2)));
 			weight_sum+=weight[index];
 		}
 	}
