@@ -88,9 +88,11 @@ int main(int argc, char *argv[])
 		for(int r=0;r<height;r++){
 			for(int c=0;c<width;c++){
 				vector<unsigned char> curPatch;
+				//cout<<"r: "<<r<<"c: "<<c<<endl;
 				for(int i=-Paddingnum;i<=Paddingnum;i++){
 					for(int j=-Paddingnum;j<=Paddingnum;j++){
 						curPatch.push_back(out1[r+defaultR+i][c+defaultC+j][k]);
+						//cout<<(int)out1[r+defaultR+i][c+defaultC+j][k]<<endl;
 					}
 				}
 				//cout<<"c"<<endl;
@@ -106,17 +108,26 @@ int main(int argc, char *argv[])
 				int index_i=r*width+c;
 				double normalizeTerm=0;
 				double result=0;
+				//vector<unsigned char> test=patchBank.at(index_i);
+				//cout<<"center: "<<r<<" "<<c<<endl;
+				/*for(int m=0;m<test.size();m++){
+					cout<<(int)test.at(m)<<endl;
+				}*/
 
 				//only look for surrounding 15*15 patch
-				for(int i=-7;i<=7;i++){
-					for(int j=-7;j<=7;j++){
+				for(int i=-5;i<=5;i++){
+					for(int j=-5;j<=5;j++){
+						if(i==0 && j==0) continue;
 						int cur_r=r+i;
 						int cur_c=c+j;
 						if(cur_r<0 || cur_r>height-1) continue;
 						if(cur_c<0 || cur_c>width-1) continue;
 						int index_j=cur_r*width+cur_c;
+						//cout<<"center: "<<r<<" "<<c<<endl;
+						//cout<<"r: "<<cur_r<<"c: "<<cur_c<<endl;
 						double weight=CalcEuclideanD(patchBank.at(index_i),patchBank.at(index_j),h,sigma);
 						result+=weight*Imagedata[cur_r][cur_c][k];
+						//cout<<weight<<endl;
 						//cout<<"weight"<<weight<<"img"<<(int)Imagedata[cur_r][cur_c][k]<<endl;
 						normalizeTerm+=weight;
 					}
