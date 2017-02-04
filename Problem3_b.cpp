@@ -173,7 +173,7 @@ double CalcEuclideanD(vector<unsigned char> Ni, vector<unsigned char> Nj, double
 		diff.push_back(Ni.at(i)-Nj.at(i));
 		//cout<<"N: "<<Ni.at(i)-Nj.at(i)<<endl;
 	}
-	int D=GaussianFilter(diff,sigma);
+	double D=GaussianFilter(diff,sigma);
 
 	return exp(-D/pow(h,2));
 }
