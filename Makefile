@@ -1,6 +1,9 @@
-g++ -o Problem1_a_mirror Problem1_a_mirror.cpp 
 
+--make command for Problem1(a)
+g++ -o Problem1_a_mirror Problem1_a_mirror.cpp
+g++ -o Problem1_a_resize Problem1_a_resize.cpp
 g++ -o Problem1_a_composition Problem1_a_composition.cpp 
+g++ -o Problem1_c_overlay Problem1_c_overlay.cpp 
 
 g++ -o Problem1_b_rgb2cmk Problem1_b_rgb2cmk.cpp 
 

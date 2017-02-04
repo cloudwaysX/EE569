@@ -26,39 +26,32 @@ int main(int argc, char *argv[])
 	FILE *file_back;
 
 	// Check for proper syntax
-	if (argc < 10){
+	if (argc < 6){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name threshold(<R,<G,>B) input_image.raw input_background_image.raw output_image.raw size1 size2's height+width" << endl;
+		cout << "program_name input_image.raw input_background_image.raw output_image.raw height width" << endl;
 		return 0;
 	}
 	
-	// Check if image is grayscale or color
 
-	int height = atoi(argv[8]);
-	int width =atoi(argv[9]);
-	int Size=atoi(argv[7]);
-	unsigned char thresholdR = atoi(argv[1]);
-	unsigned char thresholdG = atoi(argv[2]);
-	unsigned char thresholdB = atoi(argv[3]);
-
-	cout<<"current threshold on the B channel is: "<<(int)thresholdB<<endl;
+	int height = atoi(argv[4]);
+	int width =atoi(argv[5]);
 
 
 	
 	// Allocate image data array
-	unsigned char Imagedata[Size][Size][BytesPerPixel];
+	unsigned char Imagedata[height][width][BytesPerPixel];
 
 	// Read image (filename specified by first argument) into image data matrix
-	if (!(file=fopen(argv[4],"rb"))) {
-		cout << "Cannot open file: " << argv[4] <<endl;
+	if (!(file=fopen(argv[1],"rb"))) {
+		cout << "Cannot open file: " << argv[1] <<endl;
 		exit(1);
 	}
-	fread(Imagedata, sizeof(unsigned char), Size*Size*BytesPerPixel, file);
+	fread(Imagedata, sizeof(unsigned char), height*width*BytesPerPixel, file);
 	fclose(file);
 
 	unsigned char Imagedata_back[height][width][BytesPerPixel];
-	if (!(file_back=fopen(argv[5],"rb"))) {
-		cout << "Cannot open file: " << argv[5] <<endl;
+	if (!(file_back=fopen(argv[2],"rb"))) {
+		cout << "Cannot open file: " << argv[2] <<endl;
 		exit(1);
 	}
 	fread(Imagedata_back, sizeof(unsigned char), height*width*BytesPerPixel, file_back);
@@ -67,17 +60,19 @@ int main(int argc, char *argv[])
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////	
 
 
-
-	int default_r=400;
-	int default_c=1100;
-
-	for(int r=0;r<Size;r++){
-		for(int c=0;c<Size;c++){
-			for(int i=0;i<BytesPerPixel;i++){
-				if(!(Imagedata[r][c][2]>thresholdB&&Imagedata[r][c][0]<thresholdR&&Imagedata[r][c][1]<thresholdG))
-				//if(Imagedata[r][c][2]<thresholdB)
-					Imagedata_back[r+default_r][c+default_c][i] = Imagedata[r][c][i];
-
+	for(int r=0;r<height;r++){
+		for(int c=0;c<width;c++){
+			for(int k=0;k<BytesPerPixel;k++){
+				double a=Imagedata_back[r][c][k]/255.0;
+				double b=Imagedata[r][c][k]/255.0;
+				double f;
+				if(a<0.5){
+					f=2.0*a*b;
+				}
+				else{
+					f=1-2*(1-a)*(1-b);
+				}
+				Imagedata_back[r][c][k]=f*255;
 			}
 		}
 	}
@@ -85,8 +80,8 @@ int main(int argc, char *argv[])
 
 	// Write image data (filename specified by second argument) from image data matrix
 
-	if (!(file=fopen(argv[6],"wb"))) {
-		cout << "Cannot open file: " << argv[4] << endl;
+	if (!(file=fopen(argv[3],"wb"))) {
+		cout << "Cannot open file: " << argv[3] << endl;
 		exit(1);
 	}
 	fwrite(Imagedata_back,sizeof(unsigned char), height*width*BytesPerPixel, file);
