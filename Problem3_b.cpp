@@ -15,8 +15,8 @@
 
 using namespace std;
 
-double CalcEuclideanD(vector<unsigned char> Ni, vector<unsigned char> Nj, double h,double sigma);
-double GaussianFilter(vector<unsigned char> Patch,double sigma);
+double CalcEuclideanD(int*** img, int r_i, int c_i, int r_j, int c_j,int k,vector<double> gaussianFilter);
+vector<double> GaussianFilter(int filterSize,double sigma);
 
 int main(int argc, char *argv[])
 
@@ -61,6 +61,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	cout<<"creating GaussianFilter... with size"<<patchSize<<" and sigma"<<sigma<<endl;
+	vector<double> gaussianFilter = GaussianFilter(patchSize,sigma);
+	/*for(int i=0;i<gaussianFilter.size();i++){
+		cout<<gaussianFilter.at(i)<<endl;
+	}*/
+
+
 	cout<<"begin padding..."<<endl;
 	for(int r=0;r<height+Paddingnum*2;r++){
 		int r2=max(0,r-Paddingnum);
@@ -68,79 +75,46 @@ int main(int argc, char *argv[])
 		for(int c=0;c<width+Paddingnum*2;c++){
 			int c2=max(0,c-Paddingnum);
 			c2=min(width-1,c2);
-			//cout<<r2<< " "<<c2<<endl;
-			//cout<<r<< " "<<c<<endl;
 			for(int k=0;k<BytesPerPixel;k++){
-				//out<<(int)Imagedata[r2][c2][k]<<endl;
 				out1[r][c][k]=Imagedata[r2][c2][k];
 			}
 		}
 	}
-
 	cout<<"finish padding"<<endl;
 
 
 	for(int k=0;k<BytesPerPixel;k++){
 	///////////////////////////////////////// Find all the patches at once
-		vector< vector<unsigned char> > patchBank;
 		int defaultR=Paddingnum;
 		int defaultC=Paddingnum;
+		//cout<<"height: "<<height<<endl;
 		for(int r=0;r<height;r++){
+			//cout<<"a: "<<r_i<<endl;
 			for(int c=0;c<width;c++){
-				vector<unsigned char> curPatch;
-				//cout<<"r: "<<r<<"c: "<<c<<endl;
-				for(int i=-Paddingnum;i<=Paddingnum;i++){
-					for(int j=-Paddingnum;j<=Paddingnum;j++){
-						curPatch.push_back(out1[r+defaultR+i][c+defaultC+j][k]);
-						//cout<<(int)out1[r+defaultR+i][c+defaultC+j][k]<<endl;
+				//cout<<"a: "<<r_i<<" "<<c_i<<endl;
+				int r_i=r+defaultR;
+				int c_i=c+defaultC;
+				//only look for surrounding 11*11 patch
+				double weight_sum=0;
+				double neighborSum=0;
+				for(int r2=-5;r2<=5;r2++){
+					for(int c2=-5;c2<=5;c2++){
+						int r_j=r_i+r2; int c_j=c_i+c2;
+						//cout<<r_j<<" "<<c_j<<endl;
+						//cout<<r_i<<" "<<c_i<<endl;
+						if(r_j<Paddingnum || r_j>height+Paddingnum-1) continue;
+						if(c_j<Paddingnum || c_j>width+Paddingnum-1) continue;
+						double D=CalcEuclideanD(out1, r_i, c_i, r_j, c_j,k,gaussianFilter);
+						double weight=exp(-D/pow(h,2));
+						neighborSum+=weight*out1[r_j][c_j][k];
+						weight_sum+=weight;
 					}
 				}
-				//cout<<"c"<<endl;
-				patchBank.push_back(curPatch);
-				//cout<<"c"<<endl;
-			}
-		}
-
-		cout<<"For channel: "<<k<<" finish finding all patches" <<endl;
-	//Do the NL-means algorithm
-		for(int r=0;r<height;r++){
-			for(int c=0;c<width;c++){
-				int index_i=r*width+c;
-				double normalizeTerm=0;
-				double result=0;
-				//vector<unsigned char> test=patchBank.at(index_i);
-				//cout<<"center: "<<r<<" "<<c<<endl;
-				/*for(int m=0;m<test.size();m++){
-					cout<<(int)test.at(m)<<endl;
-				}*/
-
-				//only look for surrounding 15*15 patch
-				for(int i=-5;i<=5;i++){
-					for(int j=-5;j<=5;j++){
-						if(i==0 && j==0) continue;
-						int cur_r=r+i;
-						int cur_c=c+j;
-						if(cur_r<0 || cur_r>height-1) continue;
-						if(cur_c<0 || cur_c>width-1) continue;
-						int index_j=cur_r*width+cur_c;
-						//cout<<"center: "<<r<<" "<<c<<endl;
-						//cout<<"r: "<<cur_r<<"c: "<<cur_c<<endl;
-						double weight=CalcEuclideanD(patchBank.at(index_i),patchBank.at(index_j),h,sigma);
-						result+=weight*Imagedata[cur_r][cur_c][k];
-						//cout<<weight<<endl;
-						//cout<<"weight"<<weight<<"img"<<(int)Imagedata[cur_r][cur_c][k]<<endl;
-						normalizeTerm+=weight;
-					}
-				}
-				//cout<<(int)Imagedata[r][c][k]<<endl;
-				Imagedata[r][c][k]=result/normalizeTerm;
-				//cout<<(int)Imagedata[r][c][k]<<endl;
-				//cout<<"For channel: "<<k<<" finish denoise row: "<<r<<"col: "<<c<<endl;
+				Imagedata[r_i-defaultR][c_i-defaultC][k]=neighborSum/weight_sum;
 			}
 			cout<<"For channel: "<<k<<" finish denoise row: "<<r<<endl;
 		}
 	}
-
 
 
 	// Write image data (filename specified by second argument) from image data matrix
@@ -167,34 +141,38 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-double CalcEuclideanD(vector<unsigned char> Ni, vector<unsigned char> Nj, double h, double sigma){
-	vector<unsigned char> diff;
-	for(int i=0;i<Ni.size();i++){
-		diff.push_back(Ni.at(i)-Nj.at(i));
-		//cout<<"N: "<<Ni.at(i)-Nj.at(i)<<endl;
-	}
-	double D=GaussianFilter(diff,sigma);
-
-	return exp(-D/pow(h,2));
-}
-
-double GaussianFilter(vector<unsigned char> Patch,double sigma){
+vector<double> GaussianFilter(int filterSize,double sigma){
 
 	double sum=0;
 	double weight_sum=0;
-	int filterSize=sqrt(Patch.size());
-	double weight[Patch.size()];
+	vector<double> weight;
 	int center=filterSize/2; //both for row and column
 	for (int r=0;r<filterSize;r++){
 		for (int c=0;c<filterSize;c++){
-			int index=r*filterSize+c;
-			weight[index]=exp(-(pow(r-center,2)+pow(c-center,2))/(2*pow((double)sigma,2)));
-			weight_sum+=weight[index];
+			double temp=exp(-(pow(r-center,2)+pow(c-center,2))/(2*pow((double)sigma,2)));
+			temp=temp/(2*M_PI*pow((double)sigma,2));
+			weight_sum+=temp;
+			weight.push_back(temp);
 		}
 	}
-	for (int i=0;i<Patch.size();i++){
-		sum+=weight[i]*pow(Patch.at(i),2);
+	
+	for(int i=0;i<weight.size();i++){
+		weight.at(i)=weight.at(i)/weight_sum;
 	}
-	sum = sum/weight_sum;
-	return sum;
+	return weight;
+}
+
+double CalcEuclideanD(int*** img, int r_i, int c_i, int r_j, int c_j,int k,vector<double> gaussianFilter){
+	double D=0;
+	int filterSize = sqrt(gaussianFilter.size());
+	for(int i=-filterSize/2;i<=filterSize/2;i++){
+		for(int j=-filterSize/2;j<=filterSize/2;j++){
+			int index=(i+filterSize/2)*filterSize+(j+filterSize/2);
+			//cout<<index<<endl;
+			double temp=img[r_i+i][c_i+j][k]-img[r_j+i][c_j+j][k];
+			temp=pow(temp,2)*gaussianFilter.at(index);
+			D+=temp;
+		}
+	}
+	return D;
 }
