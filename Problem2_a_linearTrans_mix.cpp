@@ -8,11 +8,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
-#include <vector>
 
 using namespace std;
-
-
 
 int main(int argc, char *argv[])
 
@@ -22,13 +19,13 @@ int main(int argc, char *argv[])
 	int BytesPerPixel=1;
 
 	// Check for proper syntax
-	if (argc < 6){
+	if (argc < 5){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw height width range" << endl;
+		cout << "program_name input_image.raw output_image.raw height width" << endl;
 		return 0;
 	}
-	if(argc==7){
-		BytesPerPixel=atoi(argv[6]);
+	if(argc==6){
+		BytesPerPixel=atoi(argv[5]);
 	}
 	
 	// Check if image is grayscale or color
@@ -47,31 +44,31 @@ int main(int argc, char *argv[])
 
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
 
-	//define the range
-	int range=atoi(argv[5]);
+	//define the transfer funciton y=kx+b
+	double k=3;
+	double b1=10;
+	double b2=-540;
 
-	//calcualte the histogram
-	vector<unsigned int> hist(256,0);
-	vector<double> culhis(256,0);
-	for(int channel=0;channel<BytesPerPixel;channel++){
+	cout<<height<<" "<<width<<endl;
+	for(int i=0;i<BytesPerPixel;i++){
+		cout<<i<<endl;
 		for(int r=0;r<height;r++){
 			for(int c=0;c<width;c++){
-				hist.at(Imagedata[r][c][channel])+=1;
+				int temp=Imagedata[r][c][i];
+				double b;
+				if(temp<80){
+					b=b1;
+				}
+				else{
+					b=b2;
+				}
+				temp=k*(double)temp+b;
+				temp=min(temp,255-(temp-255));
+				temp=max(temp,-temp);
+				Imagedata[r][c][i]=temp;
 			}
 		}
-		culhis.at(0)=hist.at(0)/(height*width);
-		for(int i=1;i<256;i++){
-			culhis.at(i)=culhis.at(i-1)+hist.at(i)/(double)(height*width);
-		}
-
-		for(int r=0;r<height;r++){
-			for(int c=0;c<width;c++){
-			
-				Imagedata[r][c][channel]=(unsigned char)(culhis.at((int)Imagedata[r][c][channel])*range);
-				//cout<<(int)Imagedata[r][c][0]<<endl;
-			}
-		}
-}
+	}
 
 	// Write image data (filename specified by second argument) from image data matrix
 

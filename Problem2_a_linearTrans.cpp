@@ -19,11 +19,16 @@ int main(int argc, char *argv[])
 	int BytesPerPixel=1;
 
 	// Check for proper syntax
-	if (argc < 6){
+	if (argc < 7){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw height width slope" << endl;
+		cout << "program_name input_image.raw output_image.raw height width slope center" << endl;
 		return 0;
 	}
+
+	if(argc==8){
+		BytesPerPixel=atoi(argv[7]);
+	}
+	
 	
 	// Check if image is grayscale or color
 	int height = atoi(argv[3]);
@@ -43,24 +48,24 @@ int main(int argc, char *argv[])
 
 	//define the transfer funciton y=kx+b
 	double k=atof(argv[5]);
-	double b=128-128*k;
+	double center=atof(argv[6]);
+	double b=center-center*k;
 
 	cout<<height<<" "<<width<<endl;
 
-	for(int r=0;r<height;r++){
-		for(int c=0;c<width;c++){
-			int temp=Imagedata[r][c][0];
-			//cout<<"before:"<<temp<<endl;
-			temp=k*(double)temp+b;
-			//cout<<"after 1:"<<temp<<endl;
-			temp=min(temp,255-(temp-255));
-			//cout<<"after 2:"<<temp<<endl;
-			temp=max(temp,-temp);
-			Imagedata[r][c][0]=temp;
-			//cout<<"after:"<<temp<<endl;
+	for(int i=0;i<BytesPerPixel;i++){
+		cout<<i<<endl;
+		for(int r=0;r<height;r++){
+			for(int c=0;c<width;c++){
+				int temp=Imagedata[r][c][i];
+				double b;
+				temp=k*(double)temp+b;
+				temp=min(temp,255-(temp-255));
+				temp=max(temp,-temp);
+				Imagedata[r][c][i]=temp;
+			}
 		}
 	}
-
 
 	// Write image data (filename specified by second argument) from image data matrix
 

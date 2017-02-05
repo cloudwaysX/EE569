@@ -15,8 +15,10 @@
 
 using namespace std;
 
-unsigned char MedianFilter(vector<unsigned char> Patch);
-unsigned char GaussianFilter(vector<unsigned char> Patch,double sigma);
+unsigned char MedianFilter_Pixel(vector<unsigned char> Patch);
+unsigned char GaussianFilter_Pixel(vector<unsigned char> Patch,double sigma);
+int*** MedianFilter(int*** in,int BytesPerPixel,int patchSize,int height,int width);
+int*** GaussianFilter(int*** in,int BytesPerPixel,int patchSize,int height,int width,double sigma);
 
 int main(int argc, char *argv[])
 
@@ -26,16 +28,21 @@ int main(int argc, char *argv[])
 	int BytesPerPixel=3;
 
 	// Check for proper syntax
-	if (argc < 7){
+	if (argc < 8){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw height width size sigma" << endl;
+		cout << "program_name input_image.raw output_image.raw height width size sigma mode" << endl;
 		return 0;
 	}
 	
+	cout<<"mode 1: median only; mode 2: gaussian only; mode 3:gaussian+median 4:median+gaussian"<<endl;
+
 	int height = atoi(argv[3]);
 	int width = atoi(argv[4]);
 	int patchSize=atoi(argv[5]);
-	int sigma=atoi(argv[6]);
+	double sigma=atof(argv[6]);
+	int mode=atoi(argv[7]);
+
+	cout<<"now are running mode: "<<mode<<endl;
 
 	// Allocate image data array
 	unsigned char Imagedata[height][width][BytesPerPixel];
@@ -51,51 +58,42 @@ int main(int argc, char *argv[])
 
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
 	////////////Declare a pointer
-	int*** out1 =new int**[height];
-	int*** out2 =new int**[height];
+	int*** out1;
+	int*** out2;
+	int*** original=new int**[height];
 	for(int i =0;i<height;i++){
-		out1[i]=new int*[width];
-		out2[i]=new int*[width];
+		original[i]=new int*[width];
 	}
 	for(int i =0;i<height;i++){
 		for(int j=0;j<width;j++){
-			out1[i][j]=new int[BytesPerPixel];
-			out2[i][j]=new int[BytesPerPixel];
+			original[i][j]=new int[BytesPerPixel];
 		}
 	}
 
+	//copy the original data into pointer in order to pass into the function
+	for(int i =0;i<height;i++){
+		for(int j=0;j<width;j++){
+			for(int k=0;k<BytesPerPixel;k++){
+				original[i][j][k]=Imagedata[i][j][k];
+			}
+		}
+	}
 
+	if(mode==1){
+		out2=MedianFilter(original,BytesPerPixel,patchSize,height,width);
+	}
+	else if(mode==2){
+		out2=GaussianFilter(original,BytesPerPixel,patchSize,height,width,sigma);
+	}
+	else if(mode==3){
+		out1=GaussianFilter(original,BytesPerPixel,patchSize,height,width,sigma);
+		out2=MedianFilter(out1,BytesPerPixel,patchSize,height,width);
+	}
+	else{
+		out1=MedianFilter(original,BytesPerPixel,patchSize,height,width);
+		out2=GaussianFilter(out1,BytesPerPixel,patchSize,height,width,sigma);
+	}
 	/////////////////////////////////////////
-	for(int k=0;k<BytesPerPixel;k++){
-		for(int r=patchSize/2;r<height-patchSize/2;r++){
-			for(int c=patchSize/2;c<width-patchSize/2;c++){
-
-				vector<unsigned char> curPatch;
-				for(int i=-patchSize/2;i<=patchSize/2;i++){
-					for(int j=-patchSize/2;j<=patchSize/2;j++){
-						curPatch.push_back(Imagedata[r+i][c+j][k]);
-					}
-				}
-				out1[r][c][k]=MedianFilter(curPatch);
-			}
-		}
-	}
-
-	for(int k=0;k<BytesPerPixel;k++){
-		for(int r=patchSize/2;r<height-patchSize/2;r++){
-			for(int c=patchSize/2;c<width-patchSize/2;c++){
-
-				vector<unsigned char> curPatch;
-				for(int i=-patchSize/2;i<=patchSize/2;i++){
-					for(int j=-patchSize/2;j<=patchSize/2;j++){
-						curPatch.push_back(out1[r+i][c+j][k]);
-					}
-				}
-				out2[r][c][k]=GaussianFilter(curPatch,sigma);
-			}
-			//cout<<r<<endl;
-		}
-	}
 
 	// Write image data (filename specified by second argument) from image data matrix
 
@@ -111,16 +109,19 @@ int main(int argc, char *argv[])
 	//delete pointers
 	for(int i =0;i<height;i++){
 		for(int j=0;j<width;j++){
-			delete out1[i][j];
+			if(mode==3 ||mode==4) delete out1[i][j];
 			delete out2[i][j];
+			delete original[i][j];
 		}
 	}
 	for(int i =0;i<height;i++){
-		delete out1[i];
+		if(mode==3 ||mode==4) delete out1[i];
 		delete out2[i];
+		delete original[i];
 	}
-	delete out1;
+	if(mode==3 ||mode==4) delete out1;
 	delete out2;
+	delete original;
 
 
 	if (!(file=fopen(argv[2],"wb"))) {
@@ -133,12 +134,12 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-unsigned char MedianFilter(vector<unsigned char> Patch){
+unsigned char MedianFilter_Pixel(vector<unsigned char> Patch){
 	sort(Patch.begin(),Patch.end());
 	return Patch.at(Patch.size()/2);
 }
 
-unsigned char GaussianFilter(vector<unsigned char> Patch,double sigma){
+unsigned char GaussianFilter_Pixel(vector<unsigned char> Patch,double sigma){
 	//cout<<sigma<<endl;
 	double sum=0;
 	double weight_sum=0;
@@ -157,4 +158,67 @@ unsigned char GaussianFilter(vector<unsigned char> Patch,double sigma){
 	}
 	sum = sum/weight_sum;
 	return sum;
+}
+
+int*** MedianFilter(int*** in,int BytesPerPixel,int patchSize,int height,int width){
+	int*** out =new int**[height];
+	for(int i =0;i<height;i++){
+		out[i]=new int*[width];
+	}
+	for(int i =0;i<height;i++){
+		for(int j=0;j<width;j++){
+			out[i][j]=new int[BytesPerPixel];
+		}
+	}
+	cout<<height<<endl;
+	cout<<width<<endl;
+	//out[510][510][0]=1;
+	for(int k=0;k<BytesPerPixel;k++){
+		for(int r=0;r<height;r++){
+			for(int c=0;c<width;c++){
+				vector<unsigned char> curPatch;
+				for(int i=-patchSize/2;i<=patchSize/2;i++){
+					for(int j=-patchSize/2;j<=patchSize/2;j++){
+						int r2=max(0,r+i); r2=min(r2,height-1);
+						int c2=max(0,c+j); c2=min(c2,width-1);
+						curPatch.push_back(in[r2][c2][k]);
+					}
+				}
+				int tmp=MedianFilter_Pixel(curPatch);
+				out[r][c][k]=tmp;
+			}
+		}
+	}
+
+	return out;
+}
+
+int*** GaussianFilter(int*** in,int BytesPerPixel,int patchSize,int height,int width,double sigma){
+	int*** out =new int**[height];
+	for(int i =0;i<height;i++){
+		out[i]=new int*[width];
+	}
+	for(int i =0;i<height;i++){
+		for(int j=0;j<width;j++){
+			out[i][j]=new int[BytesPerPixel];
+		}
+	}
+	for(int k=0;k<BytesPerPixel;k++){
+		for(int r=0;r<height;r++){
+			for(int c=0;c<width;c++){
+				vector<unsigned char> curPatch;
+				for(int i=-patchSize/2;i<=patchSize/2;i++){
+					for(int j=-patchSize/2;j<=patchSize/2;j++){
+						int r2=max(0,r+i); r2=min(r2,height-1);
+						int c2=max(0,c+j); c2=min(c2,width-1);
+						curPatch.push_back(in[r2][c2][k]);
+					}
+				}
+				int tmp=GaussianFilter_Pixel(curPatch,sigma);
+				out[r][c][k]=tmp;
+			}
+		}
+	}
+
+	return out;
 }

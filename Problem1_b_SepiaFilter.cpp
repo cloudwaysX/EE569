@@ -48,12 +48,15 @@ int main(int argc, char *argv[])
 	fclose(file);
 
 	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
-	//Mirror the Image acrross vertical axis
-	cout<<"a"<<endl;
 	unsigned char out_gray[height][width];
-	cout<<"b"<<endl;
+	/*
+	cout<<"a"<<endl;
+	unsigned char** out_gray= new unsigned char*[height];
+	for(int i=0;i<height;i++){
+		out_gray[i]=new unsigned char[width];
+	}
+	cout<<"b"<<endl;*/
 	//unsigned char out_Sephia[height][width][BytesPerPixel];
-	cout<<"c"<<endl;
 	int selectChannel=atoi(argv[5]);
 	unsigned char normalizeParameter = 255;
 

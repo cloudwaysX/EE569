@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	// Check for proper syntax
 	if (argc < 4){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name input_image.raw output_image.raw [BytesPerPixel = 1] [Size = 256]" << endl;
+		cout << "program_name input_image.raw output_image.raw height width" << endl;
 		return 0;
 	}
 	
