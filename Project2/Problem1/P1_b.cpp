@@ -100,25 +100,20 @@ int main(int argc, char *argv[])
 
 
 
-	//cv::Mat corner_orginal=FindCorner(original,1,range_begin,range_end);
-	//cv::Mat corner_piece=FindCorner(piece,0,range_begin,range_end);
+	cv::Mat corner_orginal=FindCorner(original,1,range_begin,range_end);
+	cv::Mat corner_piece=FindCorner(piece,0,range_begin,range_end);
 
 	//adjust the order of coordinates
-	//cv::Mat backM;
-	/*int HillaryOrder[4][4]={
-		{0,0,0,1},
-		{1,0,0,0},
-		{0,1,0,0},
-		{0,0,1,0}
-	};
-	cv::Mat HillaryOrderM(4,4,CV_8U, cv::Scalar::all(0));
-	for(int i=0;i<4;i++){
-		for(int j=0;j<4;j++){
-			HillaryOrderM.at<unsigned char>(i,j)=HillaryOrder[i][j];
-		}
-	}
-	cout<<endl;
-	cv::Mat ordered_corner_piece(4,3,CV_32S,cv::Scalar::all(0));
+	cv::Mat HillaryOrder = (cv::Mat_<float>(4, 4) <<
+		0,0,0,1,
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0);
+	cv::Mat A=P*P;
+	cout<<"Error!"<<endl;
+	cv::Mat backM=corner_piece*HillaryOrderM;
+	//cout<<endl;
+	/*cv::Mat ordered_corner_piece(4,3,CV_32S,cv::Scalar::all(0));
 	for(int i=0;i<4;i++){
 		for(int j=0;j<4;j++){
 			cout<<(int)HillaryOrderM.at<unsigned char>(i,j)<<" ";
@@ -131,11 +126,14 @@ int main(int argc, char *argv[])
 	//calculate transform matrix
 	//cv::divide(ordered_corner_piece,corner_orginal,backM);
 
+
+
 	double backM[3][3]={
 		{1.2041,-0.1515,-93.0557},
 		{0.3980,1.4545,-208.6085},
 		{0,0,1}
 	};
+	int overlay=5;
 	for(int y=135;y<=241;y++){
 		for(int x=174;x<272;x++){
 			double back_x=backM[0][0]*x+backM[0][1]*y+backM[0][2];
