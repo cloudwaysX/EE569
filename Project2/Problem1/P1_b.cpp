@@ -103,41 +103,50 @@ int main(int argc, char *argv[])
 	cv::Mat corner_orginal=FindCorner(original,1,range_begin,range_end);
 	cv::Mat corner_piece=FindCorner(piece,0,range_begin,range_end);
 
-	//adjust the order of coordinates
-	cv::Mat HillaryOrder = (cv::Mat_<float>(4, 4) <<
-		0,0,0,1,
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0);
-	cv::Mat A=P*P;
-	cout<<"Error!"<<endl;
-	cv::Mat backM=corner_piece*HillaryOrderM;
-	//cout<<endl;
-	/*cv::Mat ordered_corner_piece(4,3,CV_32S,cv::Scalar::all(0));
-	for(int i=0;i<4;i++){
-		for(int j=0;j<4;j++){
-			cout<<(int)HillaryOrderM.at<unsigned char>(i,j)<<" ";
+	//Adjust the edge
+	/*int overlay=3;
+	corner_orginal.colRange(0,3).at<float>(0,0)-=overlay;
+	corner_orginal.colRange(0,3).at<float>(0,1)+=overlay;
+	corner_orginal.colRange(0,3).at<float>(0,2)+=overlay;
+	corner_orginal.colRange(0,3).at<float>(1,0)-=overlay;
+	corner_orginal.colRange(0,3).at<float>(1,1)-=overlay;
+	corner_orginal.colRange(0,3).at<float>(1,2)+=overlay;
+	//calculate transform matrix and display it
+	cout<<"this is back transform matrix"<<endl;
+	cv::Mat backM = corner_piece.colRange(1,4)*(corner_orginal.colRange(0,3)).inv();*/
+	
+
+	//Adjust the edge
+	int overlay=2;
+	/*corner_piece.colRange(0,3).at<float>(0,0)+=2;
+	corner_piece.colRange(0,3).at<float>(0,1)+=2;
+	corner_piece.colRange(0,3).at<float>(0,2)-=2;
+	corner_piece.colRange(0,3).at<float>(1,0)+=2;
+	corner_piece.colRange(0,3).at<float>(1,1)-=2;
+	corner_piece.colRange(0,3).at<float>(1,2)-=2;*/
+	corner_orginal.colRange(1,4).at<float>(0,0)+=overlay;
+	corner_orginal.colRange(1,4).at<float>(0,1)-=overlay;
+	corner_orginal.colRange(1,4).at<float>(0,2)+=overlay;
+	corner_orginal.colRange(1,4).at<float>(1,0)+=overlay;
+	corner_orginal.colRange(1,4).at<float>(1,1)-=overlay;
+	corner_orginal.colRange(1,4).at<float>(1,2)+=overlay;
+	//calculate transform matrix and display it
+	cout<<"this is back transform matrix"<<endl;
+	cv::Mat backM = corner_piece.colRange(0,3)*(corner_orginal.colRange(1,4)).inv();
+
+	for(int i=0;i<3;i++){
+		for(int j=0;j<3;j++){
+			cout<<backM.at<float>(i,j)<<" ";
 		}
 		cout<<endl;
-	}*/
+	}
 
-	//cv::multiply(corner_piece,HillaryOrderM,ordered_corner_piece);
-	//ordered_corner_piece=corner_piece*HillaryOrderM;
-	//calculate transform matrix
-	//cv::divide(ordered_corner_piece,corner_orginal,backM);
-
-
-
-	double backM[3][3]={
-		{1.2041,-0.1515,-93.0557},
-		{0.3980,1.4545,-208.6085},
-		{0,0,1}
-	};
-	int overlay=5;
-	for(int y=135;y<=241;y++){
-		for(int x=174;x<272;x++){
-			double back_x=backM[0][0]*x+backM[0][1]*y+backM[0][2];
-			double back_y=backM[1][0]*x+backM[1][1]*y+backM[1][2];
+	for(int y=corner_orginal.at<float>(1,0)-overlay;y<=corner_orginal.at<float>(1,0)+99+overlay;y++){
+		for(int x=corner_orginal.at<float>(0,0)-overlay;x<=corner_orginal.at<float>(0,0)+99+overlay;x++){
+			//double back_x=backM[0][0]*x+backM[0][1]*y+backM[0][2];
+			double back_x=backM.at<float>(0,0)*x+backM.at<float>(0,1)*y+backM.at<float>(0,2);
+			//double back_y=backM[1][0]*x+backM[1][1]*y+backM[1][2];
+			double back_y=backM.at<float>(1,0)*x+backM.at<float>(1,1)*y+backM.at<float>(1,2);
 			double a=back_y-floor(back_y);
 			double b=back_x-floor(back_x);
 			for(int i=0;i<BytesPerPixel;i++){
@@ -145,8 +154,26 @@ int main(int argc, char *argv[])
 				unsigned char tr=piece[(int)floor(back_y)][(int)floor(back_x)+1][i];
 				unsigned char bl=piece[(int)floor(back_y)+1][(int)floor(back_x)][i];
 				unsigned char br=piece[(int)floor(back_y)+1][(int)floor(back_x)+1][i];
-				original[y][x][i]=BiInterpolation(tl,tr,bl,br,a,b);
-				//original[y][x][i]=BiInterpolation(unsigned char tl, unsigned char tr,unsigned char bl,unsigned char br,double a,double b);
+				
+				int temp=(int)BiInterpolation(tl,tr,bl,br,a,b);
+				if(original[y][x][i]==255){
+					original[y][x][i]=(int)BiInterpolation(tl,tr,bl,br,a,b);
+				}
+			}
+		}
+	}
+	for(int y=corner_orginal.at<float>(1,0)-overlay;y<=corner_orginal.at<float>(1,0)+99+overlay;y++){
+		for(int x=corner_orginal.at<float>(0,0)-overlay;x<=corner_orginal.at<float>(0,0)+99+overlay;x++){
+			if(abs(x-corner_orginal.at<float>(0,0))<=3||abs(x-corner_orginal.at<float>(0,0)-99)<=3||abs(y-corner_orginal.at<float>(1,0))<=3||abs(y-corner_orginal.at<float>(1,0)-99)<=3){
+				for(int k=0;k<BytesPerPixel;k++){
+					int temp=0;
+					for(int i=-2;i<=2;i++){
+						for(int j=-2;j<=2;j++){
+							temp+=original[y+i][x+j][k];
+						}
+					}
+					original[y][x][k]=temp/25;
+				}
 			}
 		}
 	}
@@ -200,6 +227,7 @@ cv::Mat FindCorner(int*** img, int mode,int range_begin, int range_end){
 			for(int c=0;c<Size;c++){
 				//cout<<img[r][c][0]<<" "<<img[r][c][1]<<" "<<img[r][c][2]<<endl;
 				if(img[r][c][0]==255&&img[r][c][1]==255&&img[r][c][2]==255){
+
 					if(c<most_left && !isNoise(img,r,c)){most_left=c; paired_most_left=r;continue;}
 					if(r<=most_up && !isNoise(img,r,c)){most_up=r;paired_most_up=c;continue;}
 					if(c>=most_right&&!isNoise(img,r,c)){most_right=c; paired_most_right=r;continue;}
@@ -217,18 +245,11 @@ cv::Mat FindCorner(int*** img, int mode,int range_begin, int range_end){
 	cout<<most_bt<<" "<<paired_most_bt<<endl;
 	//cout<<img[paired_most_left][most_left][0]<<" "<<img[paired_most_left][most_left][1]<<" "<<img[paired_most_left][most_left][2]<<endl;
 	//int points[]={most_left, paired_most_left, paired_most_right, most_up, most_right, paired_most_right, paired_most_bt, most_bt};
-	int points[3][4]={
-		{most_left,paired_most_up, most_right,paired_most_bt}, 
-		{paired_most_left,most_up,paired_most_right,most_bt},
-		{1,1,1,1}
-	};
-	cv::Mat result(3,4,CV_32S, cv::Scalar::all(0));
-	for(int i=0;i<3;i++){
-		for(int j=0;j<4;j++){
-			result.at<int>(i,j)=points[i][j];
-		}
-	}
-	//temp.at<int>()
+
+	cv::Mat result = (cv::Mat_<float>(3, 4) <<
+		most_left,paired_most_up,most_right,paired_most_bt,
+		paired_most_left, most_up,paired_most_right,most_bt,
+		1,1,1,1);
 	return result;
 }
 
@@ -236,7 +257,7 @@ bool isNoise(int*** img,int r, int c){
 	bool isNoise=true;
 	int cout=0;
 	for(int i=-1;i<=1;i++){
-		for(int j=-1;j<1;j++){
+		for(int j=-1;j<=1;j++){
 			if(i==0&&j==0) continue;
 			if(r+i<0 || r+i>=512 || c+j<0 || c+j>=512)  continue;
 			if( img[r+i][c+j][0]==255 && img[r+i][c+j][1]==255 &&img[r+i][c+j][2]==255){
