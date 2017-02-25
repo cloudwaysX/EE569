@@ -16,8 +16,11 @@ using namespace std;
 
 bool checkHit(int FilterNum, int*** img, int** FilterType,int r, int c);
 int*** BFS(int*** img, int target);
+int*** morphological(int*** img,int Filter1_size, int Filter2_size,int** Filter1, int** Filter2);
+vector<int> BFS_shape(int*** img, int target, int seedC,int seedR);
 int BytesPerPixel=1;
 int Size = 480;
+int iterationNum=100;
 
 int main(int argc, char *argv[])
 
@@ -32,7 +35,6 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 	
-	int iterationNum=100;
 	// Allocate image data array
 	unsigned char Imagedata[Size][Size][BytesPerPixel];
 
@@ -80,6 +82,17 @@ int main(int argc, char *argv[])
 
 	};
 
+	int K1[40][9]={
+		{0,0,1,0,1,1,0,0,1},{1,1,1,0,1,0,0,0,0},{1,0,0,1,1,0,1,0,0},{0,0,0,0,1,0,1,1,1},
+		{0,0,1,0,1,1,0,0,1},{1,1,1,0,1,0,0,0,0},{1,0,0,1,1,0,1,0,0},{0,0,0,0,1,0,1,1,1},
+		{1,1,1,0,1,1,0,0,0},{0,1,1,0,1,1,0,0,1},{1,1,1,1,1,0,0,0,0},{1,1,0,1,1,0,1,0,0},{1,0,0,1,1,0,1,1,0},{0,0,0,1,1,0,1,1,1},{0,0,0,0,1,1,1,1,1},{0,0,1,0,1,1,0,1,1},
+		{1,1,1,0,1,1,0,0,1},{1,1,1,1,1,0,1,0,0},{1,0,0,1,1,0,1,1,1},{0,0,1,0,1,1,1,1,1},
+		{0,1,1,0,1,1,0,1,1},{1,1,1,1,1,1,0,0,0},{1,1,0,1,1,0,1,1,0},{0,0,0,1,1,1,1,1,1},
+		{1,1,1,0,1,1,0,1,1},{0,1,1,0,1,1,1,1,1},{1,1,1,1,1,1,1,0,0},{1,1,1,1,1,1,0,0,1},{1,1,1,1,1,0,1,1,0},{1,1,0,1,1,0,1,1,1},{1,0,0,1,1,1,1,1,1},{0,0,1,1,1,1,1,1,1},
+		{1,1,1,0,1,1,1,1,1},{1,1,1,1,1,1,1,0,1},{1,1,1,1,1,0,1,1,1},{1,0,1,1,1,1,1,1,1},
+		{1,1,1,1,1,1,0,1,1},{1,1,1,1,1,1,1,1,0},{1,1,0,1,1,1,1,1,1},{0,1,1,1,1,1,1,1,1}
+	};
+
 
 	int ST2[69][9]={
 	//int ST2[57][9]={
@@ -98,6 +111,19 @@ int main(int argc, char *argv[])
 		{1,-1,1,-1,1,-1,1,1,1},{1,-1,1,-1,1,1,1,-1,1},{1,1,1,-1,1,-1,1,-1,1},{1,-1,1,1,1,-1,1,-1,1},
 		{-1,1,0,0,1,1,1,0,-1},{0,1,-1,1,1,0,-1,0,1},{-1,0,1,1,1,0,0,1,-1},{1,0,-1,0,1,1,-1,1,0}
 	};
+
+	int K2[50][9]={
+		{0,0,0,0,1,0,0,0,1},{0,0,0,0,1,0,1,0,0},{0,0,1,0,1,0,0,0,0},{1,0,0,0,1,0,0,0,0},
+		{0,0,0,1,1,0,0,0,0},{0,1,0,0,1,0,0,0,0},{0,0,0,0,1,0,0,1,0},{0,0,0,0,1,1,0,0,0},
+		{0,1,0,0,1,1,0,0,0},{0,1,0,1,1,0,0,0,0},{0,0,0,0,1,1,0,1,0},{0,0,0,1,1,0,0,1,0},
+		{1,1,-1,1,1,-1,-1,-1,-1},{-1,-1,-1,-1,1,1,-1,1,1},
+		{-1,1,-1,1,1,1,-1,-1,-1},{-1,1,-1,1,1,-1,-1,1,-1},{-1,-1,-1,1,1,1,-1,1,-1},{-1,1,-1,-1,1,1,-1,1,-1},
+		{1,-1,1,-1,1,-1,1,0,0},{1,-1,1,-1,1,-1,0,1,0},{1,-1,1,-1,1,-1,0,0,1},{1,-1,1,-1,1,0,1,-1,0},{1,-1,0,-1,1,1,1,-1,0},{1,-1,0,-1,1,0,1,-1,1},{1,0,0,-1,1,-1,1,-1,1},{0,1,0,-1,1,-1,1,-1,1},{0,0,1,-1,1,-1,1,-1,1},{1,-1,1,0,1,-1,0,-1,1},{0,-1,1,1,1,-1,0,-1,1},{0,-1,1,0,1,-1,1,-1,1},
+		{1,-1,1,-1,1,-1,1,1,0},{1,-1,1,-1,1,-1,0,1,1},{1,-1,1,-1,1,-1,1,0,1},{1,-1,1,-1,1,1,1,-1,0},{1,-1,0,-1,1,1,1,-1,1},{1,-1,1,-1,1,0,1,-1,1},{1,1,0,-1,1,-1,1,-1,1},{0,1,1,-1,1,-1,1,-1,1},{1,0,1,-1,1,-1,1,-1,1},{1,-1,1,1,1,-1,0,-1,1},{0,-1,1,1,1,-1,1,-1,1},{1,-1,1,0,1,-1,1,-1,1},
+		{1,-1,1,-1,1,-1,1,1,1},{1,-1,1,-1,1,1,1,-1,1},{1,1,1,-1,1,-1,1,-1,1},{1,-1,1,1,1,-1,1,-1,1},
+		{-1,1,0,0,1,1,1,0,-1},{0,1,-1,1,1,0,-1,0,1},{-1,0,1,1,1,0,0,1,-1},{1,0,-1,0,1,1,-1,1,0}
+	};
+
 
 
 	int** Filter1;
@@ -129,17 +155,8 @@ int main(int argc, char *argv[])
 	}
 
 	//declare pointer for image
-	int*** temp_result=new int**[Size];
-	for(int i =0;i<Size;i++){
-		temp_result[i]=new int*[Size];
-	}
-	for(int i =0;i<Size;i++){
-		for(int j=0;j<Size;j++){
-			temp_result[i][j]=new int[BytesPerPixel];
-		}
-	}
 
-	/*int*** img=new int**[Size];
+	int*** img=new int**[Size];
 	for(int i =0;i<Size;i++){
 		img[i]=new int*[Size];
 	}
@@ -150,38 +167,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	//cout<<"a"<<endl;
-	for(int iter=0;iter<iterationNum;iter++){
-		//cout<<iter<<endl;
-		for(int r=0;r<Size;r++){
-			for(int c=0;c<Size;c++){
-				//cout<<r<<" "<<c<<endl;
-				if(img[r][c][0]==0){ //check F(u,v)
-					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if F(u,v)!=1
-					continue;
-				} 
-				//cout<<"c"<<endl;
-				bool isHit=checkHit(Filter1_size, img,Filter1,r,c);
-				if(!isHit){
-					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if M(u,v)!=1
-				}
-				else{
-					temp_result[r][c][0]=255;
-				}
-			}
-		}
-		for(int r=0;r<Size;r++){
-			for(int c=0;c<Size;c++){
-				if(temp_result[r][c][0]==0){ //check F(u,v)
-					continue;
-				} 
-				bool isHit2=checkHit(Filter2_size,temp_result,Filter2, r,c);
-				if(!isHit2){
-					img[r][c][0]=255-img[r][c][0]; //G(u,v)=F(u,v) if UnconditionalMask=1;
-				}
-			}
-		}
-
-	}
+	img=morphological(img,Filter1_size,Filter2_size,Filter1,Filter2);
 	// Write image data (filename specified by second argument) from image data matrix
 	//only count the isolate point
 	int holeNum=0;
@@ -196,11 +182,9 @@ int main(int argc, char *argv[])
 						int newR=r+i; int newC=c+j;
 						if(newR<0||newR>=Size||newC<0||newC>=Size) continue;
 						sum+=img[r+i][c+j][0]/255;
-						//cout<<sum<<endl;
 					}
 				}
 				if(sum==1){
-					//cout<<"po: "<<r<<" "<<c<<endl;
 					holeNum++;
 				}
 			}
@@ -209,17 +193,6 @@ int main(int argc, char *argv[])
 	}
 
 	cout<<"the hole number is: "<<holeNum<<endl;
-
-	//delete pointer
-	for(int i =0;i<Size;i++){
-		for(int j=0;j<Size;j++){
-			delete temp_result[i][j];
-		}
-	}
-	for(int i =0;i<Size;i++){
-		delete temp_result[i];
-	}
-	delete temp_result;
 
 	for(int i =0;i<Size;i++){
 		for(int j=0;j<Size;j++){
@@ -236,7 +209,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	fwrite(Imagedata, sizeof(unsigned char), Size*Size*BytesPerPixel, file);
-	fclose(file);*/
+	fclose(file);
 	///////////////////////////////////////////////////////////////////////////////////
 	
 	int*** backgroundRemovedImg=BFS(originalImg,0);
@@ -254,6 +227,19 @@ int main(int argc, char *argv[])
 
 		}
 	}
+
+
+	int*** img_nohole=new int**[Size];
+	for(int i =0;i<Size;i++){
+		img_nohole[i]=new int*[Size];
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			img_nohole[i][j]=new int[BytesPerPixel];
+			img_nohole[i][j][0]=Imagedata[i][j][0];
+		}
+	}
+
 	if (!(file=fopen("../result/P3/countObject_backgroundRemoved.raw","wb"))) {
 		cout << "Cannot open file: " << "countHoles.raw" << endl;
 		exit(1);
@@ -261,7 +247,7 @@ int main(int argc, char *argv[])
 	fwrite(Imagedata, sizeof(unsigned char), Size*Size*BytesPerPixel, file);
 	fclose(file);
 
-	int*** img=new int**[Size];
+	img=new int**[Size];
 	for(int i =0;i<Size;i++){
 		img[i]=new int*[Size];
 	}
@@ -272,45 +258,19 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	for(int iter=0;iter<iterationNum;iter++){
-		//cout<<iter<<endl;
-		for(int r=0;r<Size;r++){
-			for(int c=0;c<Size;c++){
-				//cout<<r<<" "<<c<<endl;
-				if(img[r][c][0]==0){ //check F(u,v)
-					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if F(u,v)!=1
-					continue;
-				} 
-				//cout<<"c"<<endl;
-				bool isHit=checkHit(Filter1_size, img,Filter1,r,c);
-				if(!isHit){
-					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if M(u,v)!=1
-				}
-				else{
-					temp_result[r][c][0]=255;
-				}
-			}
-		}
-		for(int r=0;r<Size;r++){
-			for(int c=0;c<Size;c++){
-				if(temp_result[r][c][0]==0){ //check F(u,v)
-					continue;
-				} 
-				bool isHit2=checkHit(Filter2_size,temp_result,Filter2, r,c);
-				if(!isHit2){
-					img[r][c][0]=255-img[r][c][0]; //G(u,v)=F(u,v) if UnconditionalMask=1;
-				}
-			}
-		}
+	img=morphological(img,Filter1_size,Filter2_size,Filter1,Filter2);
 
-	}
+	vector< vector<int> > objectSeeds;
 
-
-	int objectNum=0;
 	for(int r=0;r<Size;r++){
 		for(int c=0;c<Size;c++){
 			Imagedata[r][c][0]=img[r][c][0];
-			if(img[r][c][0]==255) objectNum++;
+			if(img[r][c][0]==255){
+				vector<int> temp;
+				temp.push_back(r);
+				temp.push_back(c);
+				objectSeeds.push_back(temp);
+			} 
 		}
 	}
 	if (!(file=fopen("../result/P3/countObject.raw","wb"))) {
@@ -320,7 +280,29 @@ int main(int argc, char *argv[])
 	fwrite(Imagedata, sizeof(unsigned char), Size*Size*BytesPerPixel, file);
 	fclose(file);
 
-	cout<<"The object number is:"<< objectNum<<endl;
+	cout<<"The object number is:"<< objectSeeds.size()<<endl;
+
+	int squareNum=0;
+	int circleNum=0;
+	/////////////////////////////////////////////////////////////////////////////////////
+	for(int i=0;i<objectSeeds.size();i++){
+		int seedR=objectSeeds.at(i).at(0);
+		int seedC=objectSeeds.at(i).at(1);
+		vector<int> shape;
+		shape=BFS_shape(img_nohole,255,seedC,seedR);
+		cout<<seedR<<" "<<seedC<<":"<<endl;
+		cout<<"Area:"<<shape.at(0)<<" Perimeter:"<<shape.at(1)<<endl;
+		int ratio=shape.at(1)*shape.at(1)/shape.at(0);
+		cout<<ratio<<endl;
+		if(ratio==15||ratio==16){
+			circleNum++;
+		}
+		else{
+			squareNum++;
+		}
+	}
+	cout<<"squareNum: "<<squareNum<<" circleNum: "<<circleNum<<endl;
+
 
 	return 0;
 }
@@ -342,6 +324,66 @@ bool checkHit(int FilterNum, int*** img, int** FilterType,int r, int c){
 		}
 	}
 	return isCandidate;
+}
+
+int*** morphological(int*** img,int Filter1_size, int Filter2_size,int** Filter1, int** Filter2){
+
+	int*** temp_result=new int**[Size];
+	for(int i =0;i<Size;i++){
+		temp_result[i]=new int*[Size];
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			temp_result[i][j]=new int[BytesPerPixel];
+		}
+	}
+
+
+	for(int iter=0;iter<iterationNum;iter++){
+		//cout<<iter<<endl;
+		for(int r=0;r<Size;r++){
+			for(int c=0;c<Size;c++){
+				//cout<<r<<" "<<c<<endl;
+				if(img[r][c][0]==0){ //check F(u,v)
+					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if F(u,v)!=1
+					continue;
+				} 
+				//cout<<"c"<<endl;
+				bool isHit=checkHit(Filter1_size, img,Filter1,r,c);
+				if(!isHit){
+					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if M(u,v)!=1
+				}
+				else{
+					temp_result[r][c][0]=255;
+				}
+			}
+		}
+		for(int r=0;r<Size;r++){
+			for(int c=0;c<Size;c++){
+				if(temp_result[r][c][0]==0){ //check F(u,v)
+					continue;
+				} 
+				bool isHit2=checkHit(Filter2_size,temp_result,Filter2, r,c);
+				if(!isHit2){
+					img[r][c][0]=255-img[r][c][0]; //G(u,v)=F(u,v) if UnconditionalMask=1;
+				}
+			}
+		}
+	}
+
+	//delete pointer
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			delete temp_result[i][j];
+		}
+	}
+	for(int i =0;i<Size;i++){
+		delete temp_result[i];
+	}
+	delete temp_result;
+
+
+	return img;
 }
 
 int*** BFS(int*** img, int target){
@@ -389,5 +431,68 @@ int*** BFS(int*** img, int target){
 	}
 
 	return temp_result;
+
+}
+
+
+vector<int> BFS_shape(int*** img, int target, int seedC,int seedR){
+	vector<vector<int> > candidates;
+
+	int Area=0;
+	int Perimeter=0;
+
+	//declare pointer for image
+	int*** temp_result=new int**[Size];
+	for(int i =0;i<Size;i++){
+		temp_result[i]=new int*[Size];
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			temp_result[i][j]=new int[BytesPerPixel];
+		}
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			temp_result[i][j][0]=img[i][j][0];
+		}
+	}
+
+	vector<int> seed;
+	seed.push_back(seedR);seed.push_back(seedC);
+	candidates.push_back(seed);
+	temp_result[0][0][0]=255-target;
+	while(!candidates.empty()){
+		Area++;
+		//cout<<"new one"<<endl;
+		vector<int> curPixel=candidates.front();
+		//cout<<candidates.size()<<endl;
+		candidates.erase(candidates.begin());
+		bool isBoundary=false;
+		for(int i=-1;i<=1;i++){
+			for(int j=-1;j<=1;j++){
+				int newR=curPixel[0]+i;
+				int newC=curPixel[1]+j;
+				if(newR<0||newC<0||newR>=Size||newC>=Size) continue;
+				//cout<<newR<<" "<<newC<<endl;
+				//cout<<temp_result[newR][newC][0]<<endl;
+				if(temp_result[newR][newC][0]==target){
+					vector<int> curVal;
+					curVal.push_back(newR);curVal.push_back(newC);
+					candidates.push_back(curVal);
+					temp_result[newR][newC][0]=255-target;
+				}
+				
+				if(img[newR][newC][0]!=target && !isBoundary){
+					isBoundary=true;
+				}
+				//cout<<candidates.size()<<endl;
+			}
+		}
+		if(isBoundary) Perimeter++;
+	}
+
+	vector<int> result;
+	result.push_back(Area);result.push_back(Perimeter);
+	return result;
 
 }
