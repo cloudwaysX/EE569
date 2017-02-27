@@ -25,6 +25,7 @@ unsigned char BiInterpolation(unsigned char tl, unsigned char tr,unsigned char b
 
 int Size = 512;
 int Size_piece=500;
+int range_begin;
 
 int main(int argc, char *argv[])
 
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
 	}
 
 	//here is the rough range to find the pieces
-	int range_begin=atoi(argv[3]);
+	range_begin=atoi(argv[3]);
 	int range_end=atoi(argv[4]);
 	
 	// Allocate image data array
@@ -102,37 +103,38 @@ int main(int argc, char *argv[])
 
 	cv::Mat corner_orginal=FindCorner(original,1,range_begin,range_end);
 	cv::Mat corner_piece=FindCorner(piece,0,range_begin,range_end);
+	cv::Mat backM;
 
-	//Adjust the edge
-	/*int overlay=3;
-	corner_orginal.colRange(0,3).at<float>(0,0)-=overlay;
-	corner_orginal.colRange(0,3).at<float>(0,1)+=overlay;
-	corner_orginal.colRange(0,3).at<float>(0,2)+=overlay;
-	corner_orginal.colRange(0,3).at<float>(1,0)-=overlay;
-	corner_orginal.colRange(0,3).at<float>(1,1)-=overlay;
-	corner_orginal.colRange(0,3).at<float>(1,2)+=overlay;
-	//calculate transform matrix and display it
-	cout<<"this is back transform matrix"<<endl;
-	cv::Mat backM = corner_piece.colRange(1,4)*(corner_orginal.colRange(0,3)).inv();*/
-	
+	int overlay;
+	if(range_begin<250){
+		//Adjust the edge
+		overlay=3;
+		corner_orginal.colRange(0,3).at<float>(0,0)-=overlay;
+		corner_orginal.colRange(0,3).at<float>(0,1)+=overlay;
+		corner_orginal.colRange(0,3).at<float>(0,2)+=overlay;
+		corner_orginal.colRange(0,3).at<float>(1,0)-=overlay;
+		corner_orginal.colRange(0,3).at<float>(1,1)-=overlay;
+		corner_orginal.colRange(0,3).at<float>(1,2)+=overlay;
+		cout<<"overlay is:"<<overlay<<endl;
+		//calculate transform matrix and display it
+		cout<<"this is back transform matrix"<<endl;
+		backM = corner_piece.colRange(1,4)*(corner_orginal.colRange(0,3)).inv();
+	}
+	else{
 
-	//Adjust the edge
-	int overlay=2;
-	/*corner_piece.colRange(0,3).at<float>(0,0)+=2;
-	corner_piece.colRange(0,3).at<float>(0,1)+=2;
-	corner_piece.colRange(0,3).at<float>(0,2)-=2;
-	corner_piece.colRange(0,3).at<float>(1,0)+=2;
-	corner_piece.colRange(0,3).at<float>(1,1)-=2;
-	corner_piece.colRange(0,3).at<float>(1,2)-=2;*/
-	corner_orginal.colRange(1,4).at<float>(0,0)+=overlay;
-	corner_orginal.colRange(1,4).at<float>(0,1)-=overlay;
-	corner_orginal.colRange(1,4).at<float>(0,2)+=overlay;
-	corner_orginal.colRange(1,4).at<float>(1,0)+=overlay;
-	corner_orginal.colRange(1,4).at<float>(1,1)-=overlay;
-	corner_orginal.colRange(1,4).at<float>(1,2)+=overlay;
-	//calculate transform matrix and display it
-	cout<<"this is back transform matrix"<<endl;
-	cv::Mat backM = corner_piece.colRange(0,3)*(corner_orginal.colRange(1,4)).inv();
+		overlay=1;
+		cout<<"overlay is:"<<overlay<<endl;
+		corner_orginal.colRange(1,4).at<float>(0,0)+=overlay;
+		corner_orginal.colRange(1,4).at<float>(0,1)-=overlay;
+		corner_orginal.colRange(1,4).at<float>(0,2)+=overlay;
+		corner_orginal.colRange(1,4).at<float>(1,0)+=overlay;
+		corner_orginal.colRange(1,4).at<float>(1,1)-=overlay;
+		corner_orginal.colRange(1,4).at<float>(1,2)+=overlay;
+		//calculate transform matrix and display it
+		cout<<"this is back transform matrix"<<endl;
+		backM = corner_piece.colRange(0,3)*(corner_orginal.colRange(1,4)).inv();
+	}
+
 
 	for(int i=0;i<3;i++){
 		for(int j=0;j<3;j++){
@@ -143,18 +145,23 @@ int main(int argc, char *argv[])
 
 	for(int y=corner_orginal.at<float>(1,0)-overlay;y<=corner_orginal.at<float>(1,0)+99+overlay;y++){
 		for(int x=corner_orginal.at<float>(0,0)-overlay;x<=corner_orginal.at<float>(0,0)+99+overlay;x++){
-			//double back_x=backM[0][0]*x+backM[0][1]*y+backM[0][2];
 			double back_x=backM.at<float>(0,0)*x+backM.at<float>(0,1)*y+backM.at<float>(0,2);
-			//double back_y=backM[1][0]*x+backM[1][1]*y+backM[1][2];
+
 			double back_y=backM.at<float>(1,0)*x+backM.at<float>(1,1)*y+backM.at<float>(1,2);
 			double a=back_y-floor(back_y);
 			double b=back_x-floor(back_x);
+
 			for(int i=0;i<BytesPerPixel;i++){
+
 				unsigned char tl=piece[(int)floor(back_y)][(int)floor(back_x)][i];
+								//cout<<"a1"<<endl;
 				unsigned char tr=piece[(int)floor(back_y)][(int)floor(back_x)+1][i];
+								//cout<<"a2"<<endl;
 				unsigned char bl=piece[(int)floor(back_y)+1][(int)floor(back_x)][i];
+								//cout<<"a3"<<endl;
 				unsigned char br=piece[(int)floor(back_y)+1][(int)floor(back_x)+1][i];
 				
+				//cout<<"a"<<endl;
 				int temp=(int)BiInterpolation(tl,tr,bl,br,a,b);
 				if(original[y][x][i]==255){
 					original[y][x][i]=(int)BiInterpolation(tl,tr,bl,br,a,b);
@@ -209,12 +216,24 @@ cv::Mat FindCorner(int*** img, int mode,int range_begin, int range_end){
 		cout<<"this is the piece"<<endl;
 		for(int r=0;r<Size_piece;r++){
 			for(int c=range_begin;c<range_end;c++){
-				//cout<<img[r][c][0]<<" "<<img[r][c][1]<<" "<<img[r][c][2]<<endl;
-				if(img[r][c][0]!=255||img[r][c][1]!=255||img[r][c][2]!=255){
-					if(c<most_left){most_left=c; paired_most_left=r;}
-					if(c>most_right){most_right=c; paired_most_right=r;}
-					if(r<most_up){most_up=r;paired_most_up=c;}
-					if(r>most_bt){most_bt=r;paired_most_bt=c;}
+
+				if(range_begin>0){
+					if(img[r][c][0]<=210&&img[r][c][1]<=145&&img[r][c][2]<=110){
+
+						if(c<most_left){most_left=c; paired_most_left=r;}
+						if(c>most_right){most_right=c; paired_most_right=r;}
+						if(r<most_up){most_up=r;paired_most_up=c;}
+						if(r>most_bt){most_bt=r;paired_most_bt=c;}
+					}
+				}
+				else{
+					if(img[r][c][0]!=255||img[r][c][1]!=255||img[r][c][2]!=255){
+						if(c<most_left){most_left=c; paired_most_left=r;}
+						if(c>most_right){most_right=c; paired_most_right=r;}
+						if(r<most_up){most_up=r;paired_most_up=c;}
+						if(r>most_bt){most_bt=r;paired_most_bt=c;}
+					}
+
 				}
 
 			}
@@ -237,14 +256,14 @@ cv::Mat FindCorner(int*** img, int mode,int range_begin, int range_end){
 			}
 		}
 	}
-	//four points are always clock-wise
+
+
+
 	cout<<"y    x"<<endl;
 	cout<<paired_most_left<<" "<<most_left<<endl;
 	cout<<most_up<<" "<<paired_most_up<<endl;
 	cout<<paired_most_right<<" "<<most_right<<endl;
 	cout<<most_bt<<" "<<paired_most_bt<<endl;
-	//cout<<img[paired_most_left][most_left][0]<<" "<<img[paired_most_left][most_left][1]<<" "<<img[paired_most_left][most_left][2]<<endl;
-	//int points[]={most_left, paired_most_left, paired_most_right, most_up, most_right, paired_most_right, paired_most_bt, most_bt};
 
 	cv::Mat result = (cv::Mat_<float>(3, 4) <<
 		most_left,paired_most_up,most_right,paired_most_bt,

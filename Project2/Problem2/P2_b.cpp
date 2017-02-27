@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
 	double** DiffusionM=new double*[DiffusionM_size];
 
 	if(atoi(argv[1])==0){
+		cout<<"SF"<<endl;
 		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
 			{0,0,0},
 			{0,0,7/16.0},
@@ -57,6 +58,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	else if(atoi(argv[1])==1){
+		cout<<"JJN"<<endl;
 		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
 			{0,0,0,0,0},
 			{0,0,0,0,0},
@@ -78,6 +80,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	else if(atoi(argv[1])==2){
+		cout<<"Stuki"<<endl;
 		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
 			{0,0,0,0,0},
 			{0,0,0,0,0},
@@ -98,70 +101,6 @@ int main(int argc, char *argv[])
 			cout<<endl;
 		}
 	}
-	else if(atoi(argv[1])==3){
-		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
-			{0,0,0,0,0},
-			{0,0,0,0,0},
-			{0,0,0,1/12.0,1/12.0},
-			{1/12.0,1/12.0,1/12.0,1/12.0,1/12.0},
-			{1/12.0,1/12.0,1/12.0,1/12.0,1/12.0}
-		};
-
-	
-		for(int i =0;i<DiffusionM_size;i++){
-			DiffusionM[i]=new double[DiffusionM_size];
-		}
-		for(int i =0;i<DiffusionM_size;i++){
-			for(int j=0;j<DiffusionM_size;j++){
-				DiffusionM[i][j]=DiffusionM_temp[i][j];
-				cout<<DiffusionM[i][j]<<" ";
-			}
-			cout<<endl;
-		}
-	}
-	else if(atoi(argv[1])==4){
-		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
-			{0,0,0,0,0},
-			{0,0,0,0,0},
-			{0,0,0,27/104.0,9/104.0},
-			{3/104.0,9/104.0,27/104.0,9/104.0,3/104.0},
-			{1/104.0,3/104.0,9/104.0,3/104.0,1/104.0}
-		};
-
-	
-		for(int i =0;i<DiffusionM_size;i++){
-			DiffusionM[i]=new double[DiffusionM_size];
-		}
-		for(int i =0;i<DiffusionM_size;i++){
-			for(int j=0;j<DiffusionM_size;j++){
-				DiffusionM[i][j]=DiffusionM_temp[i][j];
-				cout<<DiffusionM[i][j]<<" ";
-			}
-			cout<<endl;
-		}
-	}
-	else if(atoi(argv[1])==5){
-		double DiffusionM_temp[DiffusionM_size][DiffusionM_size]={
-			{0,0,0,0,0},
-			{0,0,0,0,0},
-			{0,0,0,0.8,0.2},
-			{0,0,0,0,0},
-			{0,0,0,0,0}
-		};
-
-	
-		for(int i =0;i<DiffusionM_size;i++){
-			DiffusionM[i]=new double[DiffusionM_size];
-		}
-		for(int i =0;i<DiffusionM_size;i++){
-			for(int j=0;j<DiffusionM_size;j++){
-				DiffusionM[i][j]=DiffusionM_temp[i][j];
-				cout<<DiffusionM[i][j]<<" ";
-			}
-			cout<<endl;
-		}
-	}
-	
 
 	// Allocate image data array
 	unsigned char Imagedata[Size][Size][BytesPerPixel];
@@ -197,8 +136,8 @@ int main(int argc, char *argv[])
 		if(r%2==0){
 			for(int c=0;c<Size;c++){
 				double curVal=original[r][c][0];
-				double error=curVal-(int)floor(curVal+0.5);
-				original[r][c][0]=(int)floor(curVal+0.5);
+				double error=curVal-(int)(curVal+0.5);
+				original[r][c][0]=(int)(curVal+0.5);
 				for(int i=-DiffusionM_size/2;i<=DiffusionM_size/2;i++){
 					for(int j=-DiffusionM_size/2;j<=DiffusionM_size/2;j++){
 						if(r+i<0||r+i>=Size||c+j<0||c+j>=Size) continue;
@@ -210,8 +149,8 @@ int main(int argc, char *argv[])
 		else{
 			for(int c=Size-1;c>=0;c--){
 				double curVal=original[r][c][0];
-				double error=curVal-(int)floor(curVal+0.5);
-				original[r][c][0]=(int)floor(curVal+0.5);
+				double error=curVal-(int)(curVal+0.5);
+				original[r][c][0]=(int)(curVal+0.5);
 				for(int i=-DiffusionM_size/2;i<=DiffusionM_size/2;i++){
 					for(int j=-DiffusionM_size/2;j<=DiffusionM_size/2;j++){
 						if(r+i<0||r+i>=Size||c+j<0||c+j>=Size) continue;

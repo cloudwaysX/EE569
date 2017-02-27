@@ -135,11 +135,10 @@ int main(int argc, char *argv[])
 	//cv::transpose(Backsource,Backsource);
 	cout<<"this is back transform matrix"<<endl;
 	cv::Mat backM = Backtarget*(Backsource.t()).inv();
-
-
-	for(int i=0;i<8;i++){
-		cout<<backM.at<float>(0,i)<<" ";
+	for(int i=0;i<9;i++){
+		cout<<"H"<<i<<": "<<backM.at<float>(0,i)<<endl;
 	}
+
 	cout<<endl;
 	for(int y=min(min(y1_tl,y1_bl),min(y1_tr,y1_br));y<max(max(y1_tl,y1_bl),max(y1_tr,y1_br));y++){
 		for(int x=min(min(x1_tl,x1_bl),min(x1_tr,x1_br));x<max(max(x1_tl,x1_bl),max(x1_tr,x1_br));x++){

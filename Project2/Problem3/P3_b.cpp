@@ -222,8 +222,7 @@ int main(int argc, char *argv[])
 			else{
 				Imagedata[r][c][0]=originalImg[r][c][0];
 			}
-			//Imagedata[r][c][0]=originalImg[r][c][0];
-			//Imagedata[r][c][0]=curVal;
+
 
 		}
 	}
@@ -311,7 +310,7 @@ bool checkHit(int FilterNum, int*** img, int** FilterType,int r, int c){
 	bool isCandidate=false;
 	for(int m=0;m<FilterNum&&!isCandidate;m++){
 		for(int i=0;i<9;i++){
-			//cout<<"d"<<endl;
+
 			int r2=i/3-1+r;
 			int c2=i%3-1+c;
 			if(r2<0||c2<0||r2>=Size||c2>=Size) continue;
@@ -340,10 +339,10 @@ int*** morphological(int*** img,int Filter1_size, int Filter2_size,int** Filter1
 
 
 	for(int iter=0;iter<iterationNum;iter++){
-		//cout<<iter<<endl;
+
 		for(int r=0;r<Size;r++){
 			for(int c=0;c<Size;c++){
-				//cout<<r<<" "<<c<<endl;
+
 				if(img[r][c][0]==0){ //check F(u,v)
 					temp_result[r][c][0]=0; //G(u,v)=F(u,v) if F(u,v)!=1
 					continue;
@@ -417,15 +416,14 @@ int*** BFS(int*** img, int target){
 				int newR=curPixel[0]+i;
 				int newC=curPixel[1]+j;
 				if(newR<0||newC<0||newR>=Size||newC>=Size) continue;
-				//cout<<newR<<" "<<newC<<endl;
-				//cout<<temp_result[newR][newC][0]<<endl;
+
 				if(temp_result[newR][newC][0]==target){
 					vector<int> curVal;
 					curVal.push_back(newR);curVal.push_back(newC);
 					candidates.push_back(curVal);
 					temp_result[newR][newC][0]=255-target;
 				}
-				//cout<<candidates.size()<<endl;
+
 			}
 		}
 	}
@@ -460,7 +458,7 @@ vector<int> BFS_shape(int*** img, int target, int seedC,int seedR){
 	vector<int> seed;
 	seed.push_back(seedR);seed.push_back(seedC);
 	candidates.push_back(seed);
-	temp_result[0][0][0]=255-target;
+	temp_result[seedR][seedC][0]=255-target;
 	while(!candidates.empty()){
 		Area++;
 		//cout<<"new one"<<endl;
@@ -473,8 +471,7 @@ vector<int> BFS_shape(int*** img, int target, int seedC,int seedR){
 				int newR=curPixel[0]+i;
 				int newC=curPixel[1]+j;
 				if(newR<0||newC<0||newR>=Size||newC>=Size) continue;
-				//cout<<newR<<" "<<newC<<endl;
-				//cout<<temp_result[newR][newC][0]<<endl;
+
 				if(temp_result[newR][newC][0]==target){
 					vector<int> curVal;
 					curVal.push_back(newR);curVal.push_back(newC);

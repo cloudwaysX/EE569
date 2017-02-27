@@ -9,20 +9,22 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
+#include <cmath>
 
 using namespace std;
 
 
 bool checkHit(int FilterNum, int*** img, int** FilterType,int r, int c);
-
+vector<int> BFS_shape(int*** img, int target, int seedC,int seedR);
+int BytesPerPixel=1;
+int Size = 480;
 
 int main(int argc, char *argv[])
 
 {
 	// Define file pointer and variables
 	FILE *file;
-	int BytesPerPixel=1;
-	int Size = 480;
 	
 	// Check for proper syntax
 	if (argc < 5){
@@ -241,6 +243,17 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	int*** original_img=new int**[Size];
+	for(int i =0;i<Size;i++){
+		original_img[i]=new int*[Size];
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			original_img[i][j]=new int[BytesPerPixel];
+			original_img[i][j][0]=Imagedata[i][j][0];
+		}
+	}
+
 	//Do the removal
 	unsigned char Target=255; //shrink the white square, 255->1
 	for(int iter=0;iter<iterationNum;iter++){
@@ -273,18 +286,33 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		/*for(int r=0;r<Size;r++){
-			for(int c=0;c<Size;c++){
-				img[r][c][0]=temp_result[r][c][0];
-			}
-		}*/
 
 	}
 
 	// Write image data (filename specified by second argument) from image data matrix
+	vector<int> sources;
 	for(int r=0;r<Size;r++){
 		for(int c=0;c<Size;c++){
 			Imagedata[r][c][0]=img[r][c][0];
+			if(mode==0 && Imagedata[r][c][0]==255){
+				sources.push_back(r);
+				sources.push_back(c);
+			}
+		}
+	}
+	if(mode==0){
+		int hist[18]={0};
+		cout<<"We have "<<sources.size()/2<<" squares"<<endl;
+		for(int i=0;i<sources.size()/2;i++){
+			int sourceR=sources.at(2*i);
+			int sourceC=sources.at(2*i+1);
+			int the_size=BFS_shape(original_img, 255, sourceC,sourceR).at(0);
+			cout<<"# "<<i<<"square has size: "<<the_size<<endl;
+			hist[(int)sqrt(the_size)-1]++;
+		}
+
+		for(int i=0;i<18;i++){
+			cout<<(i+1)<<" by "<<(i+1)<<"matrix number: "<<hist[i]<<endl;
 		}
 	}
 
@@ -316,4 +344,70 @@ bool checkHit(int FilterNum, int*** img, int** FilterType,int r, int c){
 		}
 	}
 	return isCandidate;
+}
+
+vector<int> BFS_shape(int*** img, int target, int seedC,int seedR){
+	vector<vector<int> > candidates;
+
+	int Area=0;
+	int Perimeter=0;
+
+	//declare pointer for image
+	int*** temp_result=new int**[Size];
+	for(int i =0;i<Size;i++){
+		temp_result[i]=new int*[Size];
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			temp_result[i][j]=new int[BytesPerPixel];
+		}
+	}
+	for(int i =0;i<Size;i++){
+		for(int j=0;j<Size;j++){
+			temp_result[i][j][0]=img[i][j][0];
+		}
+	}
+
+	vector<int> seed;
+	seed.push_back(seedR);seed.push_back(seedC);
+	candidates.push_back(seed);
+	int i2=0;
+	temp_result[seedR][seedC][0]=255-target;
+	while(!candidates.empty()){
+		Area++;
+		//cout<<"new one"<<endl;
+		vector<int> curPixel=candidates.front();
+		//cout<<candidates.size()<<endl;
+		candidates.erase(candidates.begin());
+		//cout<<Area<<endl;
+		//cout<<curPixel.at(0)<<" "<<curPixel.at(1)<<endl;
+
+		bool isBoundary=false;
+		for(int i=-1;i<=1;i++){
+			for(int j=-1;j<=1;j++){
+				int newR=curPixel[0]+i;
+				int newC=curPixel[1]+j;
+				if(newR<0||newC<0||newR>=Size||newC>=Size) continue;
+				//cout<<newR<<" "<<newC<<endl;
+				//cout<<temp_result[newR][newC][0]<<endl;
+				if(temp_result[newR][newC][0]==target){
+					vector<int> curVal;
+					curVal.push_back(newR);curVal.push_back(newC);
+					candidates.push_back(curVal);
+					temp_result[newR][newC][0]=255-target;
+				}
+				
+				if(img[newR][newC][0]!=target && !isBoundary){
+					isBoundary=true;
+				}
+				//cout<<candidates.size()<<endl;
+			}
+		}
+		if(isBoundary) Perimeter++;
+	}
+
+	vector<int> result;
+	result.push_back(Area);result.push_back(Perimeter);
+	return result;
+
 }
