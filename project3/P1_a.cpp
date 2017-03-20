@@ -12,6 +12,7 @@
 #include <opencv2/opencv.hpp>
 #include <cmath>
 #include <vector>
+#include <climits>
 
 using namespace std;
 using namespace cv;
@@ -288,26 +289,26 @@ double* computeTensor(const char input1[5],const char input2[5]){
 vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSize){
 	vector<int> labels;
 	for(int i=0;i<dataSize;i++){
-		double maxSum=0;
-		int maxClass=0;
+		double minSum=INT_MAX;
+		int minClass=0;
 		for(int classI=0;classI<centerVec.size();classI++){
 			double sum=0;
 			for(int j=0;j<centerVec[0].size();j++){
 				sum+=pow(centerVec[classI][j]-data[i][j],2);
 			} 
-			if(maxSum<sum){
-				maxSum=sum;
-				maxClass=classI;
+			if(minSum>sum){
+				minSum=sum;
+				minClass=classI;
 			}
 		}
 		//cout<<i<<" pic is labled as class "<<maxClass<<endl;
-		labels.push_back(maxClass);
+		labels.push_back(minClass);
 	}
 	return labels;
 }
 
 vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize){
-	for(int k=0;k<0;k++){
+	for(int k=0;k<10;k++){
 		vector<int> labels=ClassifyD(data, centerVec, dataSize);
 		vector<vector<double>> mean(4,vector<double>(25,0));
 		double classNum[4]={0,0,0,0};
@@ -321,7 +322,7 @@ vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize)
 		for(int i=0;i<centerVec.size();i++){
 			for(int j=0;j<centerVec[0].size();j++){
 				//cout<<i<<" "<<j<<endl;
-				centerVec[i][j]=mean[i][j]/classNum[i];
+				centerVec[i][j]=mean[i][j]/(classNum[i]+0.000001);
 			}
 		}
 	}
