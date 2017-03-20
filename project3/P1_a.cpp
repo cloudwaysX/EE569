@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 	cout<<"classNum: "<<classNum[0]<<" "<<classNum[1]<<endl;
 	for(int j=0;j<25;j++){
 		for(int i=0;i<12;i++){
-			stdv[labels[i]][j]+=pow(ave_featureVec[i][j]-mean[labels[i]][j]/classNum[labels[i]],2)/classNum[labels[i]];
+			stdv[labels[i]][j]+=pow(ave_featureVec[i][j]-mean[labels[i]][j],2)/classNum[labels[i]];
 		}
 	}
 	cout<<"class 0's stdv: ";
@@ -314,7 +314,7 @@ vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSi
 }
 
 vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize){
-	for(int k=0;k<20;k++){
+	for(int k=0;k<30;k++){
 		vector<int> labels=ClassifyD(data, centerVec, dataSize);
 		vector<vector<double>> mean(4,vector<double>(25,0));
 		double classNum[4]={0,0,0,0};
