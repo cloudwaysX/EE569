@@ -209,15 +209,21 @@ int main(int argc, char *argv[])
 	centroids.push_back(centroid2);
 	double classNum[2]={0,0};
 	vector<int> labels=ClassifyD(ave_featureVec, centroids, 12);
+	for(int i=0;i<labels.size();i++){
+		cout<<i+1<<" pic is labled as class "<<labels[i]<<endl;
+	}
 	cout<<"class 0's mean: ";
 	for(int j=0;j<25;j++){
 		for(int i=0;i<12;i++){
 			mean[labels[i]][j]+=ave_featureVec[i][j];
 			if(j==0){ classNum[labels[i]]+=1; }
 		}
-		cout<<mean[0][j]/classNum[0]<<" ";
+		mean[0][j]=mean[0][j]/classNum[0];
+		mean[1][j]=mean[1][j]/classNum[1];
+		cout<<mean[0][j]<<" ";
 	}
 	cout<<endl;
+	cout<<"classNum: "<<classNum[0]<<" "<<classNum[1]<<endl;
 	for(int j=0;j<25;j++){
 		for(int i=0;i<12;i++){
 			stdv[labels[i]][j]+=pow(ave_featureVec[i][j]-mean[labels[i]][j]/classNum[labels[i]],2)/classNum[labels[i]];
@@ -232,7 +238,7 @@ int main(int argc, char *argv[])
 	cout<<endl;
 	cout<<"class 1's mean: ";
 	for(int j=0;j<25;j++){
-		cout<<mean[1][j]/classNum[1]<<" ";
+		cout<<mean[1][j]<<" ";
 	}
 	cout<<endl;
 	cout<<"class 1's stdv: ";
@@ -308,7 +314,7 @@ vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSi
 }
 
 vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize){
-	for(int k=0;k<10;k++){
+	for(int k=0;k<20;k++){
 		vector<int> labels=ClassifyD(data, centerVec, dataSize);
 		vector<vector<double>> mean(4,vector<double>(25,0));
 		double classNum[4]={0,0,0,0};
