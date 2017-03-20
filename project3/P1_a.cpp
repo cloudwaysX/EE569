@@ -139,33 +139,36 @@ int main(int argc, char *argv[])
 
 	}
 
-	//visualize 25D features
+
+	//visualize features
+	/*
+	int featureNum=25;
 
 	//calculate means and standard deviation
-	cout<<"25D means: \n";
-	vector<vector<double>> mean(2,vector<double>(25,0));
-	vector<vector<double>> stdv(2,vector<double>(25,0));
-	for(int i=0;i<25;i++){
+	cout<<featureNum<<"D means: \n";
+	vector<vector<double>> mean(2,vector<double>(featureNum,0));
+	vector<vector<double>> stdv(2,vector<double>(featureNum,0));
+	for(int i=0;i<featureNum;i++){
 		for(int j=0;j<12;j++){
 			mean[0][i]+=ave_featureVec[j][i]/12.0;
 		}
 		cout<<mean[0][i]<<" ";
 	}
 	cout<<"\n"<<endl;
-	//cout<<"25D stdv: \n";
-	for(int i=0;i<25;i++){
+	//cout<<featureNum<<"D stdv: \n";
+	for(int i=0;i<featureNum;i++){
 		for(int j=0;j<12;j++){
 			stdv[0][i]+=pow(ave_featureVec[j][i]-mean[0][i],2)/12.0;
 		}
 	}
-	for(int i=0;i<25;i++){
+	for(int i=0;i<featureNum;i++){
 		stdv[0][i]=sqrt(stdv[0][i]);
 		//cout<<stdv[0][i]<<" ";
 	}
 	//cout<<endl;
 
 	/*for(int i=0;i<12;i++){
-		for(int j=0;j<25;j++){
+		for(int j=0;j<featureNum;j++){
 			cout<<ave_featureVec[i][j]-mean[j]<<" ";
 		}
 		cout<<"\n"<<endl;
@@ -174,7 +177,7 @@ int main(int argc, char *argv[])
 	///////////////////////////////////////////////////////////////////////////////////
 	//Calculate PCA
 
-	//Mat texs = Mat(12,25,CV_32F,ave_featureVec);
+	Mat texs = Mat(12,25,CV_32F,ave_featureVec);
 	/*for(int i=0;i<12;i++){
 		for(int j=0;j<25;j++){
 			cout<<texs.at<float>(i,j)<<" ";
@@ -182,8 +185,8 @@ int main(int argc, char *argv[])
 		cout<<"\n"<<endl;
 	}*/
 
-	//PCA pca(texs,Mat(),PCA::DATA_AS_ROW,3);
-	//Mat ave_featureVec_PCA = pca.project(texs);
+	PCA pca(texs,Mat(),PCA::DATA_AS_ROW,3);
+	Mat ave_featureVec_PCA = pca.project(texs);
 
 	//visualize the reduced 3D 
 	/*for(int i=0;i<12;i++){
@@ -193,18 +196,64 @@ int main(int argc, char *argv[])
 		cout<<"\n"<<endl;
 	}*/
 
+	double** ave_featureVec3D = new double*[12];
+	for(int i=0;i<12;i++){
+		ave_featureVec3D[i]=new double[3];
+		for(int j=0;j<3;j++){
+			ave_featureVec3D[i][j]=(double)ave_featureVec_PCA.at<float>(i,j);
+		}
+		cout<<endl;
+	}
+
+	//visualize the reduced 3D 
+	cout<<"3D features"<<endl;
+	for(int i=0;i<12;i++){
+		for(int j=0;j<3;j++){
+			cout<<ave_featureVec3D[i][j]<<" ";
+		}
+		cout<<"\n"<<endl;
+	}
+
+	int featureNum=3;
+
+	//calculate means and standard deviation
+	cout<<featureNum<<"D means: \n";
+	vector<vector<double>> mean(2,vector<double>(featureNum,0));
+	vector<vector<double>> stdv(2,vector<double>(featureNum,0));
+	for(int i=0;i<featureNum;i++){
+		for(int j=0;j<12;j++){
+			//mean[0][i]+=ave_featureVec[j][i]/12.0;
+			mean[0][i]+=ave_featureVec3D[j][i]/12.0;
+			cout<<"a:"<<mean[0][i]<<endl;;
+		}
+		cout<<mean[0][i]<<" ";
+	}
+	cout<<"\n"<<endl;
+	cout<<featureNum<<"D stdv: \n";
+	for(int i=0;i<featureNum;i++){
+		for(int j=0;j<12;j++){
+			//stdv[0][i]+=pow(ave_featureVec[j][i]-mean[0][i],2)/12.0;
+			stdv[0][i]+=pow(ave_featureVec3D[j][i]-mean[0][i],2)/12.0;
+		}
+	}
+	for(int i=0;i<featureNum;i++){
+		stdv[0][i]=sqrt(stdv[0][i]);
+		cout<<stdv[0][i]<<" ";
+	}
+	cout<<endl;
+
 
 	////////////////////////////////////////////////////////////////////////////////////
 	//K means
 
-	//intialize the centroid for 25D
+	//intialize the centroid 
 	vector<std::vector<double>> centroids;
 	vector<double> centroid1,centroid2,centroid3,centroid4,centroid5,centroid6;
-	for(int i=0;i<25;i++){
+	for(int i=0;i<featureNum;i++){
 		centroid1.push_back(mean[0][i]-stdv[0][i]);
 		centroid2.push_back(mean[0][i]+stdv[0][i]);
 	}
-	mean[0]=vector<double>(25,0);stdv[0]=vector<double>(25,0);
+	mean[0]=vector<double>(featureNum,0);stdv[0]=vector<double>(featureNum,0);
 	centroids.push_back(centroid1);
 	centroids.push_back(centroid2);
 	double classNum[2]={0,0};
@@ -213,7 +262,7 @@ int main(int argc, char *argv[])
 		cout<<i+1<<" pic is labled as class "<<labels[i]<<endl;
 	}
 	cout<<"class 0's mean: ";
-	for(int j=0;j<25;j++){
+	for(int j=0;j<featureNum;j++){
 		for(int i=0;i<12;i++){
 			mean[labels[i]][j]+=ave_featureVec[i][j];
 			if(j==0){ classNum[labels[i]]+=1; }
@@ -224,29 +273,29 @@ int main(int argc, char *argv[])
 	}
 	cout<<endl;
 	cout<<"classNum: "<<classNum[0]<<" "<<classNum[1]<<endl;
-	for(int j=0;j<25;j++){
+	for(int j=0;j<featureNum;j++){
 		for(int i=0;i<12;i++){
 			stdv[labels[i]][j]+=pow(ave_featureVec[i][j]-mean[labels[i]][j],2)/classNum[labels[i]];
 		}
 	}
 	cout<<"class 0's stdv: ";
-	for(int i=0;i<25;i++){
+	for(int i=0;i<featureNum;i++){
 		stdv[0][i]=sqrt(stdv[0][i]);
 		stdv[1][i]=sqrt(stdv[1][i]);
 		cout<<stdv[0][i]<<" ";
 	}
 	cout<<endl;
 	cout<<"class 1's mean: ";
-	for(int j=0;j<25;j++){
+	for(int j=0;j<featureNum;j++){
 		cout<<mean[1][j]<<" ";
 	}
 	cout<<endl;
 	cout<<"class 1's stdv: ";
-	for(int i=0;i<25;i++){
+	for(int i=0;i<featureNum;i++){
 		cout<<stdv[1][i]<<" ";
 	}
 	cout<<endl;
-	for(int i=0;i<25;i++){
+	for(int i=0;i<featureNum;i++){
 		centroid3.push_back(mean[0][i]-stdv[0][i]);
 		centroid4.push_back(mean[0][i]+stdv[0][i]);
 		centroid5.push_back(mean[1][i]-stdv[1][i]);
@@ -314,9 +363,9 @@ vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSi
 }
 
 vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize){
-	for(int k=0;k<30;k++){
+	for(int k=0;k<2;k++){
 		vector<int> labels=ClassifyD(data, centerVec, dataSize);
-		vector<vector<double>> mean(4,vector<double>(25,0));
+		vector<vector<double>> mean(4,vector<double>(centerVec[0].size(),0));
 		double classNum[4]={0,0,0,0};
 		for(int j=0;j<centerVec[0].size();j++){
 			for(int i=0;i<dataSize;i++){
@@ -328,11 +377,9 @@ vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize)
 		for(int i=0;i<centerVec.size();i++){
 			for(int j=0;j<centerVec[0].size();j++){
 				//cout<<i<<" "<<j<<endl;
-				centerVec[i][j]=mean[i][j]/(classNum[i]+0.000001);
+				centerVec[i][j]=mean[i][j]/classNum[i];
 			}
 		}
 	}
-	return ClassifyD(data, centerVec, dataSize);
-		
-
+	return ClassifyD(data, centerVec, dataSize);		
 }
