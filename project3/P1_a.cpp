@@ -61,9 +61,9 @@ int main(int argc, char *argv[])
 		}
 	}*/
 
-	float** ave_featureVec = new float*[12];
+	float** ave_featureVec25D = new float*[12];
 	for(int i=0;i<12;i++){
-		ave_featureVec[i]=new float[25];
+		ave_featureVec25D[i]=new float[25];
 	}
 
 	char** Kernels1D = new char*[5];
@@ -78,14 +78,13 @@ int main(int argc, char *argv[])
 
 
 	double** filterBanks = new double*[25];
+	//cout<<"filterBanks"<<endl;
 	for(int i =0;i<25;i++){
 		filterBanks[i]=computeTensor(Kernels1D[i/5],Kernels1D[i%5]);
-		//cout<<i<<endl;
 		for(int i3=0;i3<25;i3++){
 			//cout<<filterBanks[i][i3]<<" ";
 		}
 		//cout<<endl;
-		//cout<<filterBanks[i][1]<<endl;
 	}
 
 
@@ -104,45 +103,82 @@ int main(int argc, char *argv[])
 		double mean=0;
 		for(int row=0;row<Size;row++){
 			for(int col=0;col<Size;col++){
-				mean=Imagedata[row][col][0];
+				mean+=Imagedata[row][col][0];
 			}
 		}
 		mean=mean/(double)(Size*Size);
 
-		//extract the features
+		//extract the 25D features
 		for(int row=0;row<Size;row++){
 			for(int col=0;col<Size;col++){
-				//cout<<row<<" "<<col<<endl;
-				for(int i2=-2;i2<=2;i2++){
-					for(int j=-2;j<=2;j++){
-						//cout<<i2<<" "<<j<<endl;
-						int newR=row+i2; 
-						int newC=col+j;
-						int filterIndex=(i2+2)*5+j+2;
+				for(int n=0;n<25;n++){
+					float tmp=0;
+					for(int i2=-2;i2<=2;i2++){
+						for(int j=-2;j<=2;j++){
+							//cout<<i2<<" "<<j<<endl;
+							int newR=row+i2; 
+							int newC=col+j;
+							int filterIndex=(i2+2)*5+j+2;
 
-						//deal with boundaeies
-						newR=max(-newR,newR);
-						newR=min(newR,2*(Size-1)-newR);
-						newC=max(-newC,newC);
-						newC=min(newC,2*(Size-1)-newC);
+							//deal with boundaeies
+							newR=max(-newR,newR);
+							newR=min(newR,2*(Size-1)-newR);
+							newC=max(-newC,newC);
+							newC=min(newC,2*(Size-1)-newC);
+								
+							//textures[row*Size+col][n][i]+=Imagedata[newR][newC][0]*filterBanks[n][m]
+							tmp+=((double)Imagedata[newR][newC][0]-mean)*filterBanks[n][filterIndex];
 
-						for(int n=0;n<25;n++){
-								//textures[row*Size+col][n][i]+=Imagedata[newR][newC][0]*filterBanks[n][m]
-								ave_featureVec[i][n]+=(double)Imagedata[newR][newC][0]*filterBanks[n][filterIndex]/(double)(Size*Size);
-								//cout<<(double)Imagedata[newR][newC][0]*filterBanks[n][m]<<endl;
 						}
-
 					}
+					ave_featureVec25D[i][n]+=pow(tmp,2)/(float)(Size*Size);
 				}
+
 			}
 		}
 
 	}
 
 
-	//visualize features
-	/*
+	//visualize 25D features
+	cout.precision(2);
 	int featureNum=25;
+	cout<<featureNum<<"D features: \n";
+	for(int i=0;i<12;i++){
+		for(int j=0;j<featureNum;j++){
+			cout<<ave_featureVec25D[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////
+	//Calculate PCA
+	Mat texs = Mat(12,25,CV_32F,ave_featureVec25D);
+	PCA pca(texs,Mat(),PCA::DATA_AS_ROW,3);
+	Mat ave_featureVec_PCA = pca.project(texs);
+
+	float** ave_featureVec3D = new float*[12];
+	for(int i=0;i<12;i++){
+		ave_featureVec3D[i]=new float[3];
+		for(int j=0;j<3;j++){
+			ave_featureVec3D[i][j]=ave_featureVec_PCA.at<float>(i,j);
+		}
+	}
+
+	//visualize the reduced 3D 
+	cout<<"3D features"<<endl;
+	for(int i=0;i<12;i++){
+		for(int j=0;j<3;j++){
+			cout<<ave_featureVec3D[i][j]<<" ";
+		}
+		cout<<"\n"<<endl;
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////
+	////////K means////////////////////////
+	featureNum=3;
+	float** ave_featureVec = ave_featureVec3D;
 
 	//calculate means and standard deviation
 	cout<<featureNum<<"D means: \n";
@@ -155,85 +191,10 @@ int main(int argc, char *argv[])
 		cout<<mean[0][i]<<" ";
 	}
 	cout<<"\n"<<endl;
-	//cout<<featureNum<<"D stdv: \n";
-	for(int i=0;i<featureNum;i++){
-		for(int j=0;j<12;j++){
-			stdv[0][i]+=pow(ave_featureVec[j][i]-mean[0][i],2)/12.0;
-		}
-	}
-	for(int i=0;i<featureNum;i++){
-		stdv[0][i]=sqrt(stdv[0][i]);
-		//cout<<stdv[0][i]<<" ";
-	}
-	//cout<<endl;
-
-	/*for(int i=0;i<12;i++){
-		for(int j=0;j<featureNum;j++){
-			cout<<ave_featureVec[i][j]-mean[j]<<" ";
-		}
-		cout<<"\n"<<endl;
-	}*/
-
-	///////////////////////////////////////////////////////////////////////////////////
-	//Calculate PCA
-
-	Mat texs = Mat(12,25,CV_32F,ave_featureVec);
-	/*for(int i=0;i<12;i++){
-		for(int j=0;j<25;j++){
-			cout<<texs.at<float>(i,j)<<" ";
-		}
-		cout<<"\n"<<endl;
-	}*/
-
-	PCA pca(texs,Mat(),PCA::DATA_AS_ROW,3);
-	Mat ave_featureVec_PCA = pca.project(texs);
-
-	//visualize the reduced 3D 
-	/*for(int i=0;i<12;i++){
-		for(int j=0;j<3;j++){
-			cout<<ave_featureVec_PCA.at<float>(i,j)<<" ";
-		}
-		cout<<"\n"<<endl;
-	}*/
-
-	double** ave_featureVec3D = new double*[12];
-	for(int i=0;i<12;i++){
-		ave_featureVec3D[i]=new double[3];
-		for(int j=0;j<3;j++){
-			ave_featureVec3D[i][j]=(double)ave_featureVec_PCA.at<float>(i,j);
-		}
-		cout<<endl;
-	}
-
-	//visualize the reduced 3D 
-	cout<<"3D features"<<endl;
-	for(int i=0;i<12;i++){
-		for(int j=0;j<3;j++){
-			cout<<ave_featureVec3D[i][j]<<" ";
-		}
-		cout<<"\n"<<endl;
-	}
-
-	int featureNum=3;
-
-	//calculate means and standard deviation
-	cout<<featureNum<<"D means: \n";
-	vector<vector<double>> mean(2,vector<double>(featureNum,0));
-	vector<vector<double>> stdv(2,vector<double>(featureNum,0));
-	for(int i=0;i<featureNum;i++){
-		for(int j=0;j<12;j++){
-			//mean[0][i]+=ave_featureVec[j][i]/12.0;
-			mean[0][i]+=ave_featureVec3D[j][i]/12.0;
-			cout<<"a:"<<mean[0][i]<<endl;;
-		}
-		cout<<mean[0][i]<<" ";
-	}
-	cout<<"\n"<<endl;
 	cout<<featureNum<<"D stdv: \n";
 	for(int i=0;i<featureNum;i++){
 		for(int j=0;j<12;j++){
-			//stdv[0][i]+=pow(ave_featureVec[j][i]-mean[0][i],2)/12.0;
-			stdv[0][i]+=pow(ave_featureVec3D[j][i]-mean[0][i],2)/12.0;
+			stdv[0][i]+=pow(ave_featureVec[j][i]-mean[0][i],2)/12.0;
 		}
 	}
 	for(int i=0;i<featureNum;i++){
@@ -242,16 +203,14 @@ int main(int argc, char *argv[])
 	}
 	cout<<endl;
 
-
-	////////////////////////////////////////////////////////////////////////////////////
-	//K means
-
 	//intialize the centroid 
 	vector<std::vector<double>> centroids;
 	vector<double> centroid1,centroid2,centroid3,centroid4,centroid5,centroid6;
 	for(int i=0;i<featureNum;i++){
-		centroid1.push_back(mean[0][i]-stdv[0][i]);
-		centroid2.push_back(mean[0][i]+stdv[0][i]);
+		//centroid1.push_back(mean[0][i]-1.2*stdv[0][i]);
+		//centroid2.push_back(mean[0][i]+0.8*stdv[0][i]);
+		centroid1.push_back(mean[0][i]-1.07*stdv[0][i]);
+		centroid2.push_back(mean[0][i]+0.93*stdv[0][i]);
 	}
 	mean[0]=vector<double>(featureNum,0);stdv[0]=vector<double>(featureNum,0);
 	centroids.push_back(centroid1);
@@ -296,10 +255,14 @@ int main(int argc, char *argv[])
 	}
 	cout<<endl;
 	for(int i=0;i<featureNum;i++){
-		centroid3.push_back(mean[0][i]-stdv[0][i]);
-		centroid4.push_back(mean[0][i]+stdv[0][i]);
-		centroid5.push_back(mean[1][i]-stdv[1][i]);
-		centroid6.push_back(mean[1][i]+stdv[1][i]);
+		//centroid3.push_back(mean[0][i]-stdv[0][i]);
+		//centroid4.push_back(mean[0][i]+stdv[0][i]);
+		//centroid5.push_back(mean[1][i]-stdv[1][i]);
+		//centroid6.push_back(mean[1][i]+stdv[1][i]);
+		centroid3.push_back(mean[0][i]-0.00001*stdv[0][i]);
+		centroid4.push_back(mean[0][i]+0.00001*stdv[0][i]);
+		centroid5.push_back(mean[1][i]-0.00001*stdv[1][i]);
+		centroid6.push_back(mean[1][i]+0.00001*stdv[1][i]);
 	}
 	centroids.clear();
 	centroids.push_back(centroid3);
@@ -308,23 +271,12 @@ int main(int argc, char *argv[])
 	centroids.push_back(centroid6);
 
 	vector<int> result=Kmeans(ave_featureVec,centroids, 12);
-	for(int i=0;i<result.size();i++){
+	//vector<int> result=ClassifyD(ave_featureVec, centroids, 12);
+	/*for(int i=0;i<result.size();i++){
 		cout<<i+1<<" pic is labled as class "<<result[i]<<endl;
-	}
+	}*/
 
 
-
-
-	///////////////////////// INSERT YOUR PROCESSING CODE HERE /////////////////////////
-
-	// Write image data (filename specified by second argument) from image data matrix
-
-	/*if (!(file=fopen(argv[2],"wb"))) {
-		cout << "Cannot open file: " << argv[2] << endl;
-		exit(1);
-	}
-	fwrite(Imagedata, sizeof(unsigned char), Size*Size*BytesPerPixel, file);
-	fclose(file);*/
 
 	return 0;
 }
@@ -344,7 +296,7 @@ double* computeTensor(const char input1[5],const char input2[5]){
 vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSize){
 	vector<int> labels;
 	for(int i=0;i<dataSize;i++){
-		double minSum=INT_MAX;
+		float minSum=FLT_MAX;
 		int minClass=0;
 		for(int classI=0;classI<centerVec.size();classI++){
 			double sum=0;
@@ -363,8 +315,25 @@ vector<int> ClassifyD(float** data, vector<vector<double>> centerVec, int dataSi
 }
 
 vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize){
-	for(int k=0;k<2;k++){
+	cout<<"0 iteration new center is: \n";
+	for(int i=0;i<centerVec.size();i++){
+		for(int j=0;j<centerVec[0].size();j++){
+			cout<<centerVec[i][j]<<" ";
+		}
+		cout<<endl;
+	}
+	vector<int> old(centerVec[0].size(),0);
+	int k=0;
+	while(true){
 		vector<int> labels=ClassifyD(data, centerVec, dataSize);
+		if(old == labels){
+			break;
+		}
+		old=labels;
+		cout<<k<<" iteration lables: \n";
+		for(int i=0;i<labels.size();i++){
+			cout<<i+1<<" pic is labled as class "<<labels[i]<<endl;
+		}
 		vector<vector<double>> mean(4,vector<double>(centerVec[0].size(),0));
 		double classNum[4]={0,0,0,0};
 		for(int j=0;j<centerVec[0].size();j++){
@@ -374,12 +343,15 @@ vector<int> Kmeans(float** data, vector<vector<double>> centerVec, int dataSize)
 			}
 		}
 
+		//cout<<k+1<<" iteration new center is: \n";
 		for(int i=0;i<centerVec.size();i++){
 			for(int j=0;j<centerVec[0].size();j++){
-				//cout<<i<<" "<<j<<endl;
 				centerVec[i][j]=mean[i][j]/classNum[i];
+				//cout<<centerVec[i][j]<<" ";
 			}
+			//cout<<endl;
 		}
+		k++;
 	}
 	return ClassifyD(data, centerVec, dataSize);		
 }
