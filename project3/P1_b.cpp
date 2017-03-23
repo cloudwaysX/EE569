@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	}
 
 	int featureNum=25;
-	int clusterNum=6;
+	int clusterNum=10;
 
 	//calculate means and standard deviation
 	vector<vector<double>> mean(2,vector<double>(featureNum,0));
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 	}
 	centroids.push_back(theCentroid0);
 	set<pair<int,int>> visited;
-	for(int k=1;k<7;k++){
+	for(int k=1;k<clusterNum+1;k++){
 		double maxD=0;
 		int maxD_I[]={0,0};
 		for(int i=0;i<SizeH;i++){
@@ -248,6 +248,8 @@ int main(int argc, char *argv[])
 		centroids.push_back(theCentroid);
 	}
 	centroids.erase(centroids.begin());
+
+
 	//cout<<"centroids are: "<<endl;
 	vector<int> labels=ClassifyD(textures_window, centroids,SizeH,SizeW);
 	cout<<centroids.size()<<endl;
@@ -335,34 +337,39 @@ vector<int> Kmeans(double*** data, vector<vector<double>> centerVec, int dataSiz
 	}
 	vector<int> old(centerVec[0].size(),0);
 	int k=0;
-	while(k<30){
+	while(true){
 		vector<int> labels=ClassifyD(data, centerVec, dataSizeH,dataSizeW);
 		if(old == labels){
 			break;
 		}
 		old=labels;
-		double classNum[6]={0,0,0,0,0,0};
+		double classNum[centerVec.size()];
+		for(int i=0;i<centerVec.size();i++){
+			classNum[i]=0;
+		}
 		for(int i=0;i<labels.size();i++){
 			classNum[labels[i]]+=1;
 		}
 
+		vector<vector<double>> new_centerVec(centerVec.size(),vector<double>(25,0));
 		for(int n=0;n<centerVec[0].size();n++){
 			for(int r=0;r<dataSizeH;r++){
 				for(int c=0;c<dataSizeW;c++){
 					int theClass=labels[r*dataSizeW+c];
-					centerVec[theClass][n]+=data[r][c][n]/classNum[theClass];
+					new_centerVec[theClass][n]+=data[r][c][n]/classNum[theClass];
 				}
 			}	
 		}
+		centerVec=new_centerVec;
 		k++;
 		//if(k%30==0){
 			cout<<k<<"'s iteration"<<endl;
-			cout<<"class 0 has "<<classNum[0]<<endl;
-			cout<<"class 1 has "<<classNum[1]<<endl;
-			cout<<"class 2 has "<<classNum[2]<<endl;
-			cout<<"class 3 has "<<classNum[3]<<endl;
-			cout<<"class 4 has "<<classNum[4]<<endl;
-			cout<<"class 5 has "<<classNum[5]<<endl;
+			//cout<<"class 0 has "<<classNum[0]<<endl;
+			//cout<<"class 1 has "<<classNum[1]<<endl;
+			//cout<<"class 2 has "<<classNum[2]<<endl;
+			//cout<<"class 3 has "<<classNum[3]<<endl;
+			//cout<<"class 4 has "<<classNum[4]<<endl;
+			//cout<<"class 5 has "<<classNum[5]<<endl;
 		//}
 	
 	}
