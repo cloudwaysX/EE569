@@ -1,3 +1,5 @@
+#include "opencv2/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
 #include <opencv2/ximgproc.hpp>
 #include "opencv2/highgui.hpp"
 #include "opencv2/core/utility.hpp"
@@ -12,7 +14,7 @@ const char* keys =
     "{o || output image name}"
 };
 
-int main( int argc, const char** argv )
+int main( int argc, char *argv[] )
 {
   bool printHelp = ( argc == 1 );
   printHelp = printHelp || ( argc == 2 && std::string(argv[1]) == "--help" );
@@ -27,9 +29,9 @@ int main( int argc, const char** argv )
         return -1;
     }
     
-    std::string modelFilename = parser.get<std::string>("m");
-    std::string inFilename = parser.get<std::string>("i");
-    std::string outFilename = parser.get<std::string>("o");
+    char* modelFilename = argv[1];
+    char* inFilename = argv[2];
+    char* outFilename = argv[3];
 
     // Define file pointer and variables
     FILE *file;
