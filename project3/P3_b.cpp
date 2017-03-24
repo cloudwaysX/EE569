@@ -84,9 +84,8 @@ int main( int argc, char *argv[] )
     }
 
     ///////////////////////////Extract the features for two images////////////////
-    Mat gray1, gray2;
-    cvtColor( image1, gray1, COLOR_RGB2GRAY );
-    cvtColor( image2, gray2, COLOR_RGB2GRAY );
+    gray1=image1;
+    gray2=image2;
     
     vector<KeyPoint> kps1,kps2;
     cv::Mat kpsMap1(image1.size(), image1.type());
@@ -96,13 +95,13 @@ int main( int argc, char *argv[] )
     
     if(mode==0){
       cv::Ptr<SIFT> pDollar =SIFT::create(0, 3, 0.04, 10, 1.6);
-      pDollar->detectAndCompute(gray1, noArray(),kps1,des1,false);
-      pDollar->detectAndCompute(gray2, noArray(),kps2,des2,false);
+      pDollar->detectAndCompute(image1, noArray(),kps1,des1,false);
+      pDollar->detectAndCompute(image2, noArray(),kps2,des2,false);
     }
     else{
       cv::Ptr<SURF> pDollar =SURF::create(300,4,3,false,false);
-      pDollar->detectAndCompute(gray1, noArray(),kps1,des1,false);
-      pDollar->detectAndCompute(gray2, noArray(),kps2,des2,false);
+      pDollar->detectAndCompute(image1, noArray(),kps1,des1,false);
+      pDollar->detectAndCompute(image2, noArray(),kps2,des2,false);
     }
 
     drawKeypoints(image1,kps1,kpsMap1);
