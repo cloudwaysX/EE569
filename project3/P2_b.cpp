@@ -1,37 +1,22 @@
-#include "opencv2/features2d.hpp"
-#include "opencv2/xfeatures2d.hpp"
 #include <opencv2/ximgproc.hpp>
 #include "opencv2/highgui.hpp"
 #include "opencv2/core/utility.hpp"
+#include <iostream>
   
 using namespace cv;
-using namespace cv::ximgproc;
-
-const char* keys =
-{
-    "{i || input image name}"
-    "{m || model name}"
-    "{o || output image name}"
-};
+//using namespace cv::ximgproc;
+using namespace std;
 
 int main( int argc, char *argv[] )
 {
-  bool printHelp = ( argc == 1 );
-  printHelp = printHelp || ( argc == 2 && std::string(argv[1]) == "--help" );
-  printHelp = printHelp || ( argc == 2 && std::string(argv[1]) == "-h" );
 
-  if ( printHelp )
-  {
-    cv::CommandLineParser parser(argc, argv, keys);
-    if ( !parser.check() )
-    {
-        parser.printErrors();
-        return -1;
-    }
-    
-    char* modelFilename = argv[1];
-    char* inFilename = argv[2];
-    char* outFilename = argv[3];
+  if(argc<4){
+    cout<<"insufficient argument: program inFilename outFilename"<<endl;
+  }
+
+    char* inFilename = argv[1];
+    char* outFilename = argv[2];
+    double mode =atof(argv[3]);
 
     // Define file pointer and variables
     FILE *file;
@@ -63,15 +48,22 @@ int main( int argc, char *argv[] )
     memcpy(image.data, Imagedata, SizeH*SizeW*BytesPerPixel);
     if( image.empty() )
     { 
-      cout<<"unable to read the image"<<endl;
+      cout<<"unable to read the image mode[0/threhold]"<<endl;
       return -1;
     }
     
     image.convertTo(image, cv::DataType<float>::type, 1/255.0);
     cv::Mat edges(image.size(), image.type());
     
-    cv::Ptr<StructuredEdgeDetection> pDollar =createStructuredEdgeDetection(modelFilename);
+
+    cv::Ptr<ximgproc::StructuredEdgeDetection> pDollar =ximgproc::createStructuredEdgeDetection("./model.yml.gz");
     pDollar->detectEdges(image, edges);
+
+    if(mode != 0){
+      edges=edges>mode;
+    }
+
+    edges=1-edges;
  
     if ( outFilename == "" )
     {
