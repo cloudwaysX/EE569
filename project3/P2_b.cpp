@@ -4,8 +4,19 @@
 #include <iostream>
   
 using namespace cv;
-//using namespace cv::ximgproc;
+using namespace cv::ximgproc;
 using namespace std;
+
+Mat image;
+Mat edges, dst;
+int edgeTreshold;
+
+const char* window_name = "Edge Map";
+static void SEThreshold(int, void*)
+{
+    dst=1-edges>edgeTreshold/100.0;
+    imshow( window_name, dst );
+}
 
 int main( int argc, char *argv[] )
 {
@@ -53,27 +64,35 @@ int main( int argc, char *argv[] )
     }
     
     image.convertTo(image, cv::DataType<float>::type, 1/255.0);
-    cv::Mat edges(image.size(), image.type());
     
 
-    cv::Ptr<ximgproc::StructuredEdgeDetection> pDollar =ximgproc::createStructuredEdgeDetection("./model.yml.gz");
+    Ptr<ximgproc::StructuredEdgeDetection> pDollar =ximgproc::createStructuredEdgeDetection("./model.yml.gz");
     pDollar->detectEdges(image, edges);
+    dst.create( image.size(), image.type() );
+
 
     if(mode != 0){
-      edges=edges>mode;
+      namedWindow( window_name, WINDOW_AUTOSIZE );
+      createTrackbar( "Min Threshold:", window_name, &edgeTreshold, 100, SEThreshold );
+      SEThreshold(0,0);
+      while(true){
+        if(waitKey(0)=='x'){
+          string outFilename=string(argv[2]);
+          outFilename=string(outFilename)+to_string(edgeTreshold/100.0)+".jpg";
+          cout<<"wring to Image "<<outFilename<<endl;
+          imwrite(outFilename, 255*dst);
+        }
+        else if(waitKey(0)=='q'){
+          exit(1);
+        }
     }
-
-    edges=1-edges;
- 
-    if ( outFilename == "" )
-    {
-      cv::namedWindow("edges", 1);
-      cv::imshow("edges", edges);
- 
-      cv::waitKey(0);
     }
-    else
+    else{
+      edges=1-edges;
+      //edges are black which is 0 
       cv::imwrite(outFilename, 255*edges);
+    }
  
-      return 0;
+    return 0;
 }
+

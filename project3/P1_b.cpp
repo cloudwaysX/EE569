@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	// Check for proper syntax
 	if (argc < 3){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name output_file mode[full dimension/PCA]" << endl;
+		cout << "program_name output_file clusterNum" << endl;
 		return 0;
 	}
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 	}
 
 	int featureNum=25;
-	int clusterNum=10;
+	int clusterNum=atoi(argv[2]);
 
 	//calculate means and standard deviation
 	vector<vector<double>> mean(2,vector<double>(featureNum,0));
@@ -281,8 +281,8 @@ int main(int argc, char *argv[])
 
 
 	}
-	if (!(file=fopen("test.raw","wb"))) {
-		cout << "Cannot open file: " << argv[2] << endl;
+	if (!(file=fopen(argv[1],"wb"))) {
+		cout << "Cannot open file: " << argv[1] << endl;
 		exit(1);
 	}
 	fwrite(Imagedata, sizeof(unsigned char), SizeH*SizeW*BytesPerPixel, file);
@@ -362,15 +362,9 @@ vector<int> Kmeans(double*** data, vector<vector<double>> centerVec, int dataSiz
 		}
 		centerVec=new_centerVec;
 		k++;
-		//if(k%30==0){
+		if(k%30==0){
 			cout<<k<<"'s iteration"<<endl;
-			//cout<<"class 0 has "<<classNum[0]<<endl;
-			//cout<<"class 1 has "<<classNum[1]<<endl;
-			//cout<<"class 2 has "<<classNum[2]<<endl;
-			//cout<<"class 3 has "<<classNum[3]<<endl;
-			//cout<<"class 4 has "<<classNum[4]<<endl;
-			//cout<<"class 5 has "<<classNum[5]<<endl;
-		//}
+		}
 	
 	}
 	return ClassifyD(data, centerVec, dataSizeH,dataSizeW);	

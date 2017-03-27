@@ -14,16 +14,14 @@ using namespace std;
 int main( int argc, char *argv[] )
 {
 
-  if(argc<7){
-    cout<<"insufficient argument: program inFilename1 inFilename2 outFilename1 outFilename2 outFilename3 mode"<<endl;
+  if(argc<5){
+    cout<<"insufficient argument: program inFilename1 inFilename2 outFilename3 mode"<<endl;
   }
 
     char* inFilename1 = argv[1];
     char* inFilename2 = argv[2];
-    char* outFilename1 = argv[3];
-    char* outFilename2 = argv[4];
-    char* outFilename3 = argv[5];
-    int mode =atoi(argv[6]);
+    char* outFilename3 = argv[3];
+    int mode =atoi(argv[4]);
 
     // Define file pointer and variables
     FILE *file;
@@ -58,6 +56,8 @@ int main( int argc, char *argv[] )
       cout<<"unable to read the image1"<<endl;
       return -1;
     }
+    Mat gray1;
+    cvtColor( image1, gray1, COLOR_BGR2GRAY );
 
     if (!(file=fopen(inFilename2,"rb"))) {
       cout << "Cannot open file: " << inFilename2 <<endl;
@@ -83,46 +83,49 @@ int main( int argc, char *argv[] )
       return -1;
     }
 
+    Mat gray2;
+    cvtColor( image2, gray2, COLOR_BGR2GRAY );
+
     ///////////////////////////Extract the features for two images////////////////
-    gray1=image1;
-    gray2=image2;
     
     vector<KeyPoint> kps1,kps2;
-    cv::Mat kpsMap1(image1.size(), image1.type());
-    cv::Mat kpsMap2(image2.size(), image2.type());
-    cv::Mat des1(image1.size(), image1.type());
-    cv::Mat des2(image2.size(), image2.type());
+    cv::Mat kpsMap1(gray1.size(), gray1.type());
+    cv::Mat kpsMap2(gray2.size(), gray2.type());
+    cv::Mat des1(gray1.size(), gray1.type());
+    cv::Mat des2(gray2.size(), gray2.type());
     
     if(mode==0){
       cv::Ptr<SIFT> pDollar =SIFT::create(0, 3, 0.04, 10, 1.6);
-      pDollar->detectAndCompute(image1, noArray(),kps1,des1,false);
-      pDollar->detectAndCompute(image2, noArray(),kps2,des2,false);
+      pDollar->detectAndCompute(gray1, noArray(),kps1,des1,false);
+      pDollar->detectAndCompute(gray2, noArray(),kps2,des2,false);
     }
     else{
-      cv::Ptr<SURF> pDollar =SURF::create(300,4,3,false,false);
-      pDollar->detectAndCompute(image1, noArray(),kps1,des1,false);
-      pDollar->detectAndCompute(image2, noArray(),kps2,des2,false);
+      cv::Ptr<SURF> pDollar =SURF::create(600,4,3,false,false);
+      pDollar->detectAndCompute(gray1, noArray(),kps1,des1,false);
+      pDollar->detectAndCompute(gray2, noArray(),kps2,des2,false);
     }
-
-    drawKeypoints(image1,kps1,kpsMap1);
-    drawKeypoints(image2,kps2,kpsMap2);
-
- 
-    cv::imwrite(outFilename1, kpsMap1);
-    cv::imwrite(outFilename2, kpsMap2);
 
     ///////////////////////Feature Match////////////
     cv::Mat matchedImg;
 
-    cv::Ptr<DescriptorMatcher> bf =BFMatcher::create(NORM_L2,true);
-    vector<DMatch> matches;
-    bf->match(des1,des2,matches,noArray());
-    
-    //we only want the best 10 pairs
+    //cv::Ptr<DescriptorMatcher> bf =BFMatcher::create(NORM_L2,true);
+    cv::Ptr<DescriptorMatcher> bf =BFMatcher::create();
+    vector<vector<DMatch>> matches;
+    vector<DMatch> good;
+    good.reserve(matches.size());
+    bf->knnMatch(des1,des2,matches,2);
+    for(int i=0;i<matches.size();i++){
+      if(matches[i].size()<2) continue;
+      if(matches[i][0].distance<0.75*matches[i][1].distance){
+        good.push_back(matches[i][0]);
+      }
 
-    sort(matches.begin(),matches.end());
-    matches.resize(10);
-    drawMatches(image1,kps1,image2,kps2,matches,matchedImg);
+    }
+    
+
+    //sort(matches.begin(),matches.end());
+    //matches.resize(10);
+    drawMatches(image1,kps1,image2,kps2,good,matchedImg);
     cv::imwrite(outFilename3,matchedImg);
 
  

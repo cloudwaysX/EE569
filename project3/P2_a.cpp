@@ -23,8 +23,14 @@ static void CannyThreshold(int, void*)
     src.copyTo( dst, detected_edges);
     imshow( window_name, dst );
 }
-int main( int, char** argv )
+int main( int argc, char** argv )
 {
+
+  if(argc<2){
+    cout<<"insufficient argument: program inFilename outFilename"<<endl;
+  }
+
+
   // Define file pointer and variables
   FILE *file;
   int BytesPerPixel=3;
@@ -62,6 +68,21 @@ int main( int, char** argv )
   namedWindow( window_name, WINDOW_AUTOSIZE );
   createTrackbar( "Min Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
   CannyThreshold(0, 0);
-  waitKey(0);
+
+  while(true){
+    if(waitKey(0)=='x'){
+      string outFilename=string(argv[2]);
+      outFilename=string(outFilename)+to_string(lowThreshold)+".jpg";
+      cout<<"wring to Image "<<outFilename<<endl;
+      Mat dst_gray;
+      cvtColor(dst,dst_gray,COLOR_RGB2GRAY);
+      imwrite(outFilename, 255-dst_gray);
+    }
+    else if(waitKey(0)=='q'){
+      exit(1);
+    }
+  }
+
+
   return 0;
 }

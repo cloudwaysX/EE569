@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
 	int Size = 128;
 	
 	// Check for proper syntax
-	if (argc < 3){
+	if (argc < 2){
 		cout << "Syntax Error - Incorrect Parameter Usage:" << endl;
-		cout << "program_name mode[full dimension/PCA] testImage" << endl;
+		cout << "program_name mode[full dimension/PCA]" << endl;
 		return 0;
 	}
 
@@ -365,6 +365,13 @@ int main(int argc, char *argv[])
 
 	vector<int> result=Kmeans(ave_featureVec,centroids, 12);
 	//vector<int> result=ClassifyD(ave_featureVec, centroids, 12);
+	cout<<" final center is : "<<endl;
+	for(int i=0;i<centroids.size();i++){
+		for(int j=0;j<centroids[0].size();j++){
+			cout<<centroids[i][j]<<" ";
+		}
+		cout<<endl;
+	}
 	for(int i=0;i<result.size();i++){
 		cout<<i+1<<" pic is labled as class "<<result[i]<<endl;
 	}
@@ -456,10 +463,10 @@ vector<int> Kmeans(double** data, vector<vector<double>> &centerVec, int dataSiz
 		}
 		centerVec = new_centerVec;
 
-		cout<<k<<" iteration's : "<<endl;
+		/*cout<<k<<" iteration's : "<<endl;
 		for(int i=0;i<centerVec.size();i++){
 			cout<<"class "<<i<<" has "<<classNum[i]<<endl;
-		}
+		}*/
 
 		k++;
 	}
