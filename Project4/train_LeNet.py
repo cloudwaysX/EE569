@@ -5,7 +5,7 @@ from PIL import Image
 # #mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)  # Store mnist data for this tutorial
 
 learning_rate = 0.01
-training_epochs = 100
+training_epochs = 1
 batch_size = 100
 display_step = 1
 logs_path = './logFiles'
@@ -70,10 +70,12 @@ def LeNet5(x):
 
 def evaluation(testing_data,testing_labels,acc,x,y):
 
+
 	num_examples = len(testing_labels)
 	avg_cost = 0
 	total_batch = int(num_examples/batch_size)
 	sess = tf.get_default_session()
+
 
 	for i in range(total_batch):
 		batch_xs, batch_ys = testing_data[i*batch_size:(i+1)*batch_size],testing_labels[i*batch_size:(i+1)*batch_size]
@@ -106,6 +108,13 @@ def train_LeNet5(training_data,training_labels,testing_data,testing_labels):
     	# Accuracy
 		acc = tf.equal(tf.argmax(pred, 1), tf.argmax(one_hot_y, 1))
 		acc = tf.reduce_mean(tf.cast(acc, tf.float32))
+
+	# with tf.name_scope('mAP'):
+	# 	from tensorflow.metrics import sparse_average_precision_at_k as mAP_k
+	# 	true_y=tf.argmax(one_hot_y, 1)
+	# 	pred_y=tf.argmax(pred, 1)
+	# 	mAP=mAP_k(true_y.reshape(1,len(true_y)),pred_y.reshape(1,len(true_y)),k=len(true_y))
+
 
 
 	# Initializing the variables
@@ -150,6 +159,10 @@ def train_LeNet5(training_data,training_labels,testing_data,testing_labels):
 		# Test model
 		# Accuracy of 0.91 -> 91%
 		print("Accuracy:", evaluation(testing_data,testing_labels,acc,x,y))
+
+		# testing_mAP,_=sess.run(mAP)
+
+		# print("mAP: ",testing_mAP)
 
 
 def unpickle(filename):
