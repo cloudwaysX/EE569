@@ -77,7 +77,7 @@ training_data, training_labels = shuffle(training_data, training_labels)
 
 import tensorflow as tf
 
-training_epochs = 50
+training_epochs = 100
 BATCH_SIZE = 128
 
 def LeNet5(x):
@@ -145,14 +145,25 @@ one_hot_y = tf.one_hot(y, 10)
 rate = 0.001
 
 logits = LeNet5(x)
-cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, one_hot_y)
-loss_operation = tf.reduce_mean(cross_entropy)
-optimizer = tf.train.AdamOptimizer(learning_rate = rate)
-training_operation = optimizer.minimize(loss_operation)
+with tf.name_scope('Loss'):
+	cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits, one_hot_y)
+	loss_operation = tf.reduce_mean(cross_entropy)
+with tf.name_scope('Optimizer'):
+	optimizer = tf.train.AdamOptimizer(learning_rate = rate)
+	training_operation = optimizer.minimize(loss_operation)
+with tf.name_scope('Accuracy'):
+	correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
+	accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+	saver = tf.train.Saver()
 
-correct_prediction = tf.equal(tf.argmax(logits, 1), tf.argmax(one_hot_y, 1))
-accuracy_operation = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-saver = tf.train.Saver()
+logs_path = './logFiles'
+display_step=5
+# Create a summary to monitor cost tensor
+tf.summary.scalar("loss", loss_operation)
+# Create a summary to monitor accuracy tensor
+tf.summary.scalar("accuracy", accuracy_operation)
+# Merge all summaries into a single op
+merged_summary_op = tf.summary.merge_all()
 
 def evaluate(X_data, y_data):
     num_examples = len(X_data)
@@ -169,22 +180,33 @@ def evaluate(X_data, y_data):
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     num_examples = len(training_data)
-    
+
+    # op to write logs to Tensorboard
+    summary_writer = tf.summary.FileWriter(logs_path,graph = tf.get_default_graph())
+
     print("Training...")
     print()
     for i in range(training_epochs):
+    	avg_cost=0
         training_data,training_labels = shuffle(training_data,training_labels)
         for offset in range(0, num_examples, BATCH_SIZE):
             end = offset + BATCH_SIZE
             batch_x, batch_y = training_data[offset:end], training_labels[offset:end]
-            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
-            
-        train_accuracy = evaluate(training_data,training_labels)
-    	test_accuracy = evaluate(testing_data, testing_labels)
-    	print("EPOCH {} ...".format(i+1))
-    	print("test Accuracy = {:.3f}".format(test_accuracy))
-    	print("train Accuracy = {:.3f}".format(train_accuracy))
-    	print()
+            _,c,summary=sess.run([training_operation,loss_operation,merged_summary_op], feed_dict={x: batch_x, y: batch_y})
+
+            # Write logs at every iteration
+            summary_writer.add_summary(summary, i * int(num_examples/BATCH_SIZE) + i)
+            # Compute average loss
+            avg_cost += c / int(num_examples/BATCH_SIZE)
+
+        if i%display_step==0:
+	        train_accuracy = evaluate(training_data,training_labels)
+	    	test_accuracy = evaluate(testing_data, testing_labels)
+	    	print("EPOCH {} ...".format(i+1))
+	    	print("test Accuracy = {:.3f}".format(test_accuracy))
+	    	print("train Accuracy = {:.3f}".format(train_accuracy))
+	    	print('cost=',"{:.9f}".format(avg_cost))
+	    	print()
         
     saver.save(sess, 'lenet')
     print("Model saved")

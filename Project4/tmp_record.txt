@@ -1,0 +1,104 @@
+Training Set:   50000 samples
+Testing Set:       10000 samples
+Training...
+()
+EPOCH 1 ...
+test Accuracy = 0.225
+train Accuracy = 0.242
+('cost=', '2.442314837')
+()
+EPOCH 6 ...
+test Accuracy = 0.499
+train Accuracy = 0.541
+('cost=', '1.343390189')
+()
+EPOCH 11 ...
+test Accuracy = 0.520
+train Accuracy = 0.622
+('cost=', '1.119741189')
+()
+EPOCH 16 ...
+test Accuracy = 0.516
+train Accuracy = 0.683
+('cost=', '0.935661061')
+()
+EPOCH 21 ...
+test Accuracy = 0.517
+train Accuracy = 0.749
+('cost=', '0.789933729')
+()
+EPOCH 26 ...
+test Accuracy = 0.501
+train Accuracy = 0.766
+('cost=', '0.684608924')
+()
+EPOCH 31 ...
+test Accuracy = 0.501
+train Accuracy = 0.823
+('cost=', '0.587406053')
+()
+EPOCH 36 ...
+test Accuracy = 0.494
+train Accuracy = 0.829
+('cost=', '0.517441878')
+()
+EPOCH 41 ...
+test Accuracy = 0.486
+train Accuracy = 0.833
+('cost=', '0.466506258')
+()
+EPOCH 46 ...
+test Accuracy = 0.489
+train Accuracy = 0.879
+('cost=', '0.422047396')
+()
+EPOCH 51 ...
+test Accuracy = 0.485
+train Accuracy = 0.883
+('cost=', '0.399871468')
+()
+EPOCH 56 ...
+test Accuracy = 0.483
+train Accuracy = 0.886
+('cost=', '0.377778235')
+()
+EPOCH 61 ...
+test Accuracy = 0.472
+train Accuracy = 0.863
+('cost=', '0.379553231')
+()
+EPOCH 66 ...
+test Accuracy = 0.476
+train Accuracy = 0.903
+('cost=', '0.357772179')
+()
+EPOCH 71 ...
+test Accuracy = 0.466
+train Accuracy = 0.866
+('cost=', '0.347186597')
+()
+EPOCH 76 ...
+test Accuracy = 0.470
+train Accuracy = 0.901
+('cost=', '0.312918983')
+()
+EPOCH 81 ...
+test Accuracy = 0.469
+train Accuracy = 0.918
+('cost=', '0.281060411')
+()
+EPOCH 86 ...
+test Accuracy = 0.467
+train Accuracy = 0.890
+('cost=', '0.305611380')
+()
+EPOCH 91 ...
+test Accuracy = 0.473
+train Accuracy = 0.934
+('cost=', '0.289196047')
+()
+EPOCH 96 ...
+test Accuracy = 0.468
+train Accuracy = 0.923
+('cost=', '0.250906855')
+()
