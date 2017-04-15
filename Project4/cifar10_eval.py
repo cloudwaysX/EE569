@@ -39,13 +39,25 @@ import tensorflow as tf
 
 import cifar10
 
+from optparse import OptionParser
+
+parser=OptionParser()
+parser.add_option("--o", type=str,
+                  help="write report to certain FILE", default= './cifar10_eval_test')
+parser.add_option("--i", type=str,
+                  help="write report to certain FILE", default= './cifar10_train')
+parser.add_option("--data", type=str,
+                  help="write report to certain FILE", default= 'test')
+
+(options,args) = parser.parse_args()
+
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('eval_dir', './cifar10_eval',
+tf.app.flags.DEFINE_string('eval_dir', options.o,
                            """Directory where to write event logs.""")
-tf.app.flags.DEFINE_string('eval_data', 'test',
+tf.app.flags.DEFINE_string('eval_data', options.data,
                            """Either 'test' or 'train_eval'.""")
-tf.app.flags.DEFINE_string('checkpoint_dir', './cifar10_train',
+tf.app.flags.DEFINE_string('checkpoint_dir', options.i,
                            """Directory where to read model checkpoints.""")
 tf.app.flags.DEFINE_integer('eval_interval_secs', 0.01,
                             """How often to run the eval.""")

@@ -38,16 +38,24 @@ import tensorflow as tf
 
 import cifar10
 
+from optparse import OptionParser
+
+parser=OptionParser()
+parser.add_option("--o", type=str,
+                  help="write report to certain FILE", default= './cifar10_train')
+
+(options,args) = parser.parse_args()
+
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('train_dir', './cifar10_train',
+tf.app.flags.DEFINE_string('train_dir', options.o,
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 5000,
+tf.app.flags.DEFINE_integer('max_steps', 10000,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
-tf.app.flags.DEFINE_integer('log_frequency', 10,
+tf.app.flags.DEFINE_integer('log_frequency', 30,
                             """How often to log results to the console.""")
 
 
@@ -101,7 +109,7 @@ def train():
         # save_checkpoint_secs = 1,
         hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
                tf.train.NanTensorHook(loss),
-               tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.train_dir,save_steps=10,saver=tf.train.Saver(max_to_keep=int(FLAGS.max_steps/FLAGS.log_frequency))),
+               tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.train_dir,save_steps=30,saver=tf.train.Saver(max_to_keep=int(FLAGS.max_steps/FLAGS.log_frequency))),
                _LoggerHook()],
         config=tf.ConfigProto(
             log_device_placement=FLAGS.log_device_placement)) as mon_sess:
