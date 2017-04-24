@@ -43,6 +43,8 @@ from optparse import OptionParser
 parser=OptionParser()
 parser.add_option("--o", type=str,
                   help="write report to certain FILE", default= './cifar10_train')
+parser.add_option("--e", type=int,
+                  help="Iteration Times", default= 15000)
 
 (options,args) = parser.parse_args()
 
@@ -51,11 +53,11 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('train_dir', options.o,
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 10000,
+tf.app.flags.DEFINE_integer('max_steps', options.e,
                             """Number of batches to run.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
-tf.app.flags.DEFINE_integer('log_frequency', 30,
+tf.app.flags.DEFINE_integer('log_frequency', 50,
                             """How often to log results to the console.""")
 
 
@@ -82,15 +84,18 @@ def train():
       """Logs loss and runtime."""
 
       def begin(self):
+        print('begin')
         self._step = -1
         self._start_time = time.time()
 
       def before_run(self, run_context):
         self._step += 1
+        print('before run')
         return tf.train.SessionRunArgs(loss) # Asks for loss value
 
       def after_run(self, run_context, run_values):
         if self._step % FLAGS.log_frequency == 0:
+          print('after run')
           current_time = time.time()
           duration = current_time - self._start_time
           self._start_time = current_time
@@ -109,11 +114,12 @@ def train():
         # save_checkpoint_secs = 1,
         hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
                tf.train.NanTensorHook(loss),
-               tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.train_dir,save_steps=30,saver=tf.train.Saver(max_to_keep=int(FLAGS.max_steps/FLAGS.log_frequency))),
+               tf.train.CheckpointSaverHook(checkpoint_dir=FLAGS.train_dir,save_steps=50,saver=tf.train.Saver(max_to_keep=int(FLAGS.max_steps/FLAGS.log_frequency))),
                _LoggerHook()],
         config=tf.ConfigProto(
             log_device_placement=FLAGS.log_device_placement)) as mon_sess:
       while not mon_sess.should_stop():
+        print('before runnnnnnn')
         mon_sess.run(train_op)
 
 

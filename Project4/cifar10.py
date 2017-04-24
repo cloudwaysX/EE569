@@ -201,7 +201,6 @@ def inference(images):
                          padding='SAME', name='pool1')
   # conv2
   # Layer3: Convolutional. Input = 14x14x5. Output = 10x10x16.
-    # conv2_W = tf.get_variable("conv2_W", shape=(5,5,6,16),
   with tf.variable_scope('conv2') as scope:
     kernel = _variable_with_weight_decay('weights',
                                          shape=[5, 5, 6, 16],
